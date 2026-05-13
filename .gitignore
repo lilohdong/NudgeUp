@@ -1,0 +1,57 @@
+# ========================
+# 환경변수 (절대 올리면 안됨)
+# ========================
+.env
+*.env
+local.properties
+
+# ========================
+# Android (app/)
+# ========================
+app/.gradle/
+app/build/
+app/local.properties
+app/*.keystore
+app/*.jks
+app/app/google-services.json
+
+# Android Studio
+app/.idea/
+app/captures/
+app/.externalNativeBuild/
+app/.cxx/
+
+# ========================
+# Spring Boot (backend/)
+# ========================
+backend/gradle/
+backend/build/
+backend/out/
+backend/.idea/
+
+# Firebase Admin SDK 서비스 계정 키
+backend/src/main/resources/firebase-service-account.json
+
+# 환경별 설정 파일
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-prod.yml
+
+# ========================
+# Docker
+# ========================
+postgres_data/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# IDE 공통
+# ========================
+*.iml
+*.ipr
+*.iws
+.idea/
