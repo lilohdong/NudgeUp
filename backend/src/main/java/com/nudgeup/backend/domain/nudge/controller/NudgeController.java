@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// TODO: 독촉 알림 관련 엔드포인트
 @RestController
 @RequestMapping("/api/v1/teams/{teamId}")
 @RequiredArgsConstructor
@@ -20,23 +19,23 @@ public class NudgeController {
 
     private final NudgeService nudgeService;
 
-    // POST /api/v1/teams/{teamId}/tasks/{taskId}/nudge
     @PostMapping("/tasks/{taskId}/nudge")
     public ResponseEntity<ApiResponse<NudgeResponse>> sendNudge(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long teamId,
             @PathVariable Long taskId) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("독촉 알림을 발송했습니다.",
+                nudgeService.sendNudge(userId, teamId, taskId)));
     }
 
-    // GET /api/v1/teams/{teamId}/nudge-logs?taskId=
     @GetMapping("/nudge-logs")
     public ResponseEntity<ApiResponse<List<NudgeLogResponse>>> getNudgeLogs(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long teamId,
             @RequestParam(required = false) Long taskId) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("독촉 로그 조회 성공",
+                nudgeService.getNudgeLogs(userId, teamId, taskId)));
     }
 }
