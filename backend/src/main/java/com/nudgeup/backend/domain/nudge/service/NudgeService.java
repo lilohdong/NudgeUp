@@ -41,6 +41,10 @@ public class NudgeService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
 
+        if (!task.getTeamId().equals(teamId)) {
+            throw new CustomException(ErrorCode.TASK_NOT_FOUND);
+        }
+
         if (task.getStatus() == TaskStatus.COMPLETED) {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
@@ -50,6 +54,10 @@ public class NudgeService {
 
         if (sender.getRole() != TeamRole.LEADER && !sender.isCanNudge()) {
             throw new CustomException(ErrorCode.NO_NUDGE_PERMISSION);
+        }
+
+        if (task.getAssigneeId() == null) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
         User senderUser = userRepository.findById(userId)
