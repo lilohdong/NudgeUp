@@ -19,14 +19,16 @@ public class TeamSettingsViewModel extends ViewModel {
 
     private final TeamRepository teamRepository = new TeamRepository();
 
-    private final MutableLiveData<List<MemberResponse>> members = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> saveResult = new MutableLiveData<>();
+    private final MutableLiveData<List<MemberResponse>> members   = new MutableLiveData<>();
+    private final MutableLiveData<Boolean>              saveResult  = new MutableLiveData<>();
+    private final MutableLiveData<String>               inviteCode  = new MutableLiveData<>();
 
     private final Map<Long, Boolean> pendingNudgePermissions = new HashMap<>();
     private Long pendingNewLeaderId = null;
 
-    public LiveData<List<MemberResponse>> getMembers() { return members; }
-    public LiveData<Boolean> getSaveResult() { return saveResult; }
+    public LiveData<List<MemberResponse>> getMembers()   { return members; }
+    public LiveData<Boolean>             getSaveResult() { return saveResult; }
+    public LiveData<String>              getInviteCode() { return inviteCode; }
 
     public void loadMembers(long teamId) {
         // TODO: 백엔드 연결 후 목업 제거
@@ -37,6 +39,8 @@ public class TeamSettingsViewModel extends ViewModel {
                 new MemberResponse(4, "이서연", "MEMBER", true)
         );
         members.setValue(mockMembers);
+        // TODO: 백엔드 연결 후 팀 초대 코드 API에서 로드
+        inviteCode.setValue("DEV001");
 
         /*
         teamRepository.getMembers(teamId).enqueue(new Callback<ApiResponse<List<MemberResponse>>>() {

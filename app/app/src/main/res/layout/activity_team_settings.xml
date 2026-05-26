@@ -58,6 +58,82 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp">
 
+            <!-- ── 팀 초대 코드 (팀장 전용) ── -->
+            <LinearLayout
+                android:id="@+id/layout_invite_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_invite_card"
+                android:padding="16dp"
+                android:layout_marginBottom="28dp">
+
+                <!-- 헤더: 아이콘 + 라벨 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_person"
+                        android:scaleType="fitCenter"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="팀 초대 코드"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.06"
+                        android:textColor="#8888AA"/>
+
+                </LinearLayout>
+
+                <!-- 코드 + 복사 버튼 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tv_invite_code"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.12"
+                        android:textColor="@color/color_lime"
+                        android:fontFamily="monospace"/>
+
+                    <ImageButton
+                        android:id="@+id/btn_copy_invite"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_copy"
+                        android:background="@drawable/bg_copy_btn"
+                        android:scaleType="center"
+                        android:contentDescription="코드 복사"/>
+
+                </LinearLayout>
+
+                <!-- 안내 문구 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이 코드를 팀원에게 공유해 초대하세요"
+                    android:textSize="11sp"
+                    android:textColor="#5A5A7A"
+                    android:layout_marginTop="10dp"/>
+
+            </LinearLayout>
+
             <!-- 팀장 위임 -->
             <TextView
                 android:layout_width="wrap_content"

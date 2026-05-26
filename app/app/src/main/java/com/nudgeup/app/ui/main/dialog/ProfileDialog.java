@@ -83,8 +83,6 @@ public class ProfileDialog extends DialogFragment {
         // ── 고정 mock 데이터 (백엔드 연결 후 실제 데이터로 교체) ──
         // TODO: 백엔드 연결 후 TokenManager / API로 실제 데이터 사용
         ((TextView) view.findViewById(R.id.tv_user_role)).setText("팀장");
-        ((TextView) view.findViewById(R.id.tv_current_team)).setText("개발팀");
-        ((TextView) view.findViewById(R.id.tv_invite_code)).setText("DEV001");
 
         // ── 초기 아바타·이름 렌더링 ──
         applyAvatarColor(selectedColor);

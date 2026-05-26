@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="18dp"
+    android:height="18dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 뒤쪽 사각형 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#8888AA"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M8,4H18A2,2 0 0,1 20,6V16"/>
+    <!-- 앞쪽 사각형 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#8888AA"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M6,8H14A2,2 0 0,1 16,10V18A2,2 0 0,1 14,20H6A2,2 0 0,1 4,18V10A2,2 0 0,1 6,8Z"/>
+</vector>

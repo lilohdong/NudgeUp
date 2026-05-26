@@ -1,11 +1,15 @@
 package com.nudgeup.app.ui.team;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -25,6 +29,7 @@ public class TeamSettingsActivity extends AppCompatActivity {
     private long teamId;
     private MemberNudgeAdapter memberNudgeAdapter;
     private TextView tvSelectedLeader;
+    private TextView tvInviteCode;
     private long selectedLeaderId = -1L;
     private List<MemberResponse> memberList;
 
@@ -36,15 +41,21 @@ public class TeamSettingsActivity extends AppCompatActivity {
         teamId = getIntent().getLongExtra("teamId", -1);
         viewModel = new ViewModelProvider(this).get(TeamSettingsViewModel.class);
 
-        View btnClose = findViewById(R.id.btn_close);
-        Button btnSave = findViewById(R.id.btn_save);
+        View btnClose             = findViewById(R.id.btn_close);
+        Button btnSave            = findViewById(R.id.btn_save);
         LinearLayout dropdownLeader = findViewById(R.id.dropdown_leader);
-        tvSelectedLeader = findViewById(R.id.tv_selected_leader);
-        RecyclerView rvMembers = findViewById(R.id.rv_members);
+        tvSelectedLeader          = findViewById(R.id.tv_selected_leader);
+        tvInviteCode              = findViewById(R.id.tv_invite_code);
+        ImageButton btnCopyInvite = findViewById(R.id.btn_copy_invite);
+        RecyclerView rvMembers    = findViewById(R.id.rv_members);
 
         rvMembers.setLayoutManager(new LinearLayoutManager(this));
 
         btnClose.setOnClickListener(v -> finish());
+
+        // 초대 코드 복사
+        btnCopyInvite.setOnClickListener(v -> copyInviteCode());
+        tvInviteCode.setOnClickListener(v -> copyInviteCode()); // 코드 텍스트 클릭도 복사
 
         dropdownLeader.setOnClickListener(v -> {
             if (memberList != null && !memberList.isEmpty()) {
@@ -52,6 +63,12 @@ public class TeamSettingsActivity extends AppCompatActivity {
             }
         });
 
+        // 초대 코드 LiveData 관찰
+        viewModel.getInviteCode().observe(this, code -> {
+            if (code != null) tvInviteCode.setText(code);
+        });
+
+        // 멤버 목록 LiveData 관찰
         viewModel.getMembers().observe(this, members -> {
             if (members == null || members.isEmpty()) return;
             memberList = members;
@@ -87,14 +104,29 @@ public class TeamSettingsActivity extends AppCompatActivity {
         viewModel.loadMembers(teamId);
     }
 
+    // ─────────────────────────────────────────
+    //  초대 코드 클립보드 복사
+    // ─────────────────────────────────────────
+
+    private void copyInviteCode() {
+        String code = tvInviteCode.getText().toString();
+        if (code.isEmpty()) return;
+        ClipboardManager clipboard =
+                (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(ClipData.newPlainText("초대 코드", code));
+        Toast.makeText(this, "초대 코드가 복사됐습니다", Toast.LENGTH_SHORT).show();
+    }
+
+    // ─────────────────────────────────────────
+    //  팀장 위임 커스텀 드롭다운
+    // ─────────────────────────────────────────
+
     private void showLeaderDropdown(View anchor) {
-        // 팝업 컨테이너
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setBackgroundResource(R.drawable.bg_dropdown);
         container.setPadding(0, dpToPx(4), 0, dpToPx(4));
 
-        // PopupWindow 먼저 생성 (람다에서 참조하기 위해)
         PopupWindow popup = new PopupWindow(container,
                 anchor.getWidth(),
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -107,7 +139,7 @@ public class TeamSettingsActivity extends AppCompatActivity {
         for (int i = 0; i < memberList.size(); i++) {
             MemberResponse member = memberList.get(i);
             View itemView = inflater.inflate(R.layout.item_leader_dropdown, container, false);
-            TextView tvName = itemView.findViewById(R.id.tv_leader_name);
+            TextView tvName  = itemView.findViewById(R.id.tv_leader_name);
             ImageView ivCheck = itemView.findViewById(R.id.iv_leader_check);
 
             boolean isCurrentLeader = "LEADER".equals(member.getRole());
@@ -118,7 +150,7 @@ public class TeamSettingsActivity extends AppCompatActivity {
             ivCheck.setVisibility(isSelected ? View.VISIBLE : View.GONE);
             tvName.setTextColor(isSelected ? 0xFFD4FF00 : 0xFFCCCCCC);
 
-            final long memberId = member.getUserId();
+            final long memberId    = member.getUserId();
             final String memberLabel = label;
             itemView.setOnClickListener(v -> {
                 selectedLeaderId = memberId;
@@ -129,7 +161,6 @@ public class TeamSettingsActivity extends AppCompatActivity {
 
             container.addView(itemView);
 
-            // 구분선 (마지막 항목 제외)
             if (i < memberList.size() - 1) {
                 View divider = new View(this);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
