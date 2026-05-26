@@ -1,10 +1,16 @@
 package com.nudgeup.app.ui.main.adapter;
 
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
@@ -37,11 +43,18 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         0xFF1ABC9C, // teal
     };
 
-    public TaskListAdapter(OnNudgeClickListener nudgeListener, OnStatusChangeListener statusListener, boolean isMyTaskMode) {
+    // 상태 드롭다운 옵션 정의
+    private static final String[] STATUS_KEYS   = {"PENDING",   "IN_PROGRESS", "COMPLETED"};
+    private static final String[] STATUS_LABELS = {"대기",       "진행중",       "완료"};
+    private static final int[]    STATUS_COLORS = {0xFF8888AA,  0xFF7B3FE4,    0xFF2ECC71};
+
+    public TaskListAdapter(OnNudgeClickListener nudgeListener,
+                           OnStatusChangeListener statusListener,
+                           boolean isMyTaskMode) {
         super(DIFF_CALLBACK);
-        this.nudgeListener = nudgeListener;
+        this.nudgeListener  = nudgeListener;
         this.statusListener = statusListener;
-        this.isMyTaskMode = isMyTaskMode;
+        this.isMyTaskMode   = isMyTaskMode;
     }
 
     @NonNull
@@ -55,49 +68,48 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TaskResponse task = getItem(position);
-        long dday = calcDday(task.getDueDate());
-        boolean isUrgent = !"COMPLETED".equals(task.getStatus()) && dday <= 3;
+        long dday        = calcDday(task.getDueDate());
+        boolean isUrgent    = !"COMPLETED".equals(task.getStatus()) && dday <= 3;
         boolean isCompleted = "COMPLETED".equals(task.getStatus());
 
-        // 상태 바 색상
+        // ── 상태 바 색상 ──
         int statusColor;
-        if (isCompleted) {
-            statusColor = 0xFF2ECC71; // green
-        } else if (isUrgent) {
-            statusColor = 0xFFFF6B35; // orange
-        } else if ("IN_PROGRESS".equals(task.getStatus())) {
-            statusColor = 0xFF7B3FE4; // purple
-        } else {
-            statusColor = 0xFF4A4A6A; // gray
-        }
+        if (isCompleted)                              statusColor = 0xFF2ECC71;
+        else if (isUrgent)                            statusColor = 0xFFFF6B35;
+        else if ("IN_PROGRESS".equals(task.getStatus())) statusColor = 0xFF7B3FE4;
+        else                                          statusColor = 0xFF4A4A6A;
         holder.vStatusBar.setBackgroundColor(statusColor);
 
-        // 상태 배지 텍스트 + 배경
+        // ── 상태 배지 ──
         String badgeText;
         int badgeTextColor;
         int badgeBgRes;
         if (isCompleted) {
-            badgeText = "완료";
+            badgeText      = "완료";
             badgeTextColor = 0xFF2ECC71;
-            badgeBgRes = R.drawable.bg_badge_complete;
+            badgeBgRes     = R.drawable.bg_badge_complete;
         } else if (isUrgent) {
-            badgeText = "마감임박";
+            badgeText      = "마감임박";
             badgeTextColor = 0xFFFF6B35;
-            badgeBgRes = R.drawable.bg_badge_urgent;
+            badgeBgRes     = R.drawable.bg_badge_urgent;
         } else if ("IN_PROGRESS".equals(task.getStatus())) {
-            badgeText = "진행중";
+            badgeText      = "진행중";
             badgeTextColor = 0xFF7B3FE4;
-            badgeBgRes = R.drawable.bg_badge_progress;
+            badgeBgRes     = R.drawable.bg_badge_progress;
         } else {
-            badgeText = "대기";
+            badgeText      = "대기";
             badgeTextColor = 0xFF8888AA;
-            badgeBgRes = R.drawable.bg_badge_pending;
+            badgeBgRes     = R.drawable.bg_badge_pending;
         }
         holder.tvStatusBadge.setText(badgeText);
         holder.tvStatusBadge.setTextColor(badgeTextColor);
         holder.tvStatusBadge.setBackgroundResource(badgeBgRes);
 
-        // D-day 텍스트
+        // 상태 배지 클릭 → 드롭다운으로 상태 변경
+        holder.tvStatusBadge.setOnClickListener(v ->
+                showStatusDropdown(v, task.getId(), task.getStatus()));
+
+        // ── D-day 텍스트 ──
         if (task.getDueDate() == null || task.getDueDate().isEmpty()) {
             holder.tvDday.setText("");
         } else if (isCompleted) {
@@ -114,18 +126,15 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             holder.tvDday.setTextColor(dday <= 3 ? 0xFFFF6B35 : 0xFF8888AA);
         }
 
-        // 작업명
+        // ── 작업명 ──
         holder.tvTaskTitle.setText(task.getTitle());
-        if (isCompleted) {
-            holder.tvTaskTitle.setAlpha(0.5f);
-        } else {
-            holder.tvTaskTitle.setAlpha(1.0f);
-        }
+        holder.tvTaskTitle.setAlpha(isCompleted ? 0.5f : 1.0f);
 
-        // 담당자 아바타
+        // ── 담당자 아바타 ──
         if (task.getAssignee() != null) {
             String name = task.getAssignee().getName();
-            String initial = name != null && !name.isEmpty() ? String.valueOf(name.charAt(0)) : "?";
+            String initial = (name != null && !name.isEmpty())
+                    ? String.valueOf(name.charAt(0)) : "?";
             holder.tvAssigneeAvatar.setText(initial);
             int avatarColor = AVATAR_COLORS[(int)(task.getAssignee().getId() % AVATAR_COLORS.length)];
             GradientDrawable avatarBg = new GradientDrawable();
@@ -138,9 +147,8 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             holder.tvAssigneeName.setText("미지정");
         }
 
-        // 액션 버튼
+        // ── 액션 버튼 ──
         if (isMyTaskMode) {
-            // 내 할일: 항상 수정 아이콘으로 작업 이동
             holder.btnAction.setImageResource(R.drawable.ic_edit);
             holder.btnAction.setAlpha(1.0f);
             holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
@@ -153,24 +161,78 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             holder.btnAction.setAlpha(1.0f);
             holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
         }
-
-        // 상태 변경 (롱클릭으로 사이클)
-        holder.itemView.setOnLongClickListener(v -> {
-            if (!isCompleted) {
-                statusListener.onStatusChange(task.getId(), nextStatus(task.getStatus()));
-            }
-            return true;
-        });
     }
+
+    // ─────────────────────────────────────────
+    //  상태 변경 드롭다운 (PopupWindow)
+    // ─────────────────────────────────────────
+
+    private void showStatusDropdown(View anchor, long taskId, String currentStatus) {
+        Context context = anchor.getContext();
+
+        LinearLayout container = new LinearLayout(context);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setBackgroundResource(R.drawable.bg_dropdown);
+        container.setPadding(0, dpToPx(context, 4), 0, dpToPx(context, 4));
+
+        PopupWindow popup = new PopupWindow(
+                container,
+                dpToPx(context, 130),
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setElevation(16f);
+        popup.setOutsideTouchable(true);
+
+        LayoutInflater inflater = LayoutInflater.from(context);
+        for (int i = 0; i < STATUS_KEYS.length; i++) {
+            final String key = STATUS_KEYS[i];
+            String label     = STATUS_LABELS[i];
+            int color        = STATUS_COLORS[i];
+
+            View itemView  = inflater.inflate(R.layout.item_leader_dropdown, container, false);
+            TextView tvName = itemView.findViewById(R.id.tv_leader_name);
+            ImageView ivCheck = itemView.findViewById(R.id.iv_leader_check);
+
+            tvName.setText(label);
+            tvName.setTextColor(color);
+            ivCheck.setVisibility(key.equals(currentStatus) ? View.VISIBLE : View.GONE);
+
+            itemView.setOnClickListener(v -> {
+                statusListener.onStatusChange(taskId, key);
+                popup.dismiss();
+            });
+
+            container.addView(itemView);
+
+            // 구분선 (마지막 항목 제외)
+            if (i < STATUS_KEYS.length - 1) {
+                View divider = new View(context);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, 1);
+                lp.setMarginStart(dpToPx(context, 16));
+                lp.setMarginEnd(dpToPx(context, 16));
+                divider.setLayoutParams(lp);
+                divider.setBackgroundColor(0xFF2A2A45);
+                container.addView(divider);
+            }
+        }
+
+        popup.showAsDropDown(anchor, 0, dpToPx(context, 4));
+    }
+
+    // ─────────────────────────────────────────
+    //  D-day 계산 (java.util.Calendar, minSdk 24 호환)
+    // ─────────────────────────────────────────
 
     private long calcDday(String dueDateStr) {
         if (dueDateStr == null) return 999L;
         try {
             String[] parts = dueDateStr.split("-");
             if (parts.length != 3) return 999L;
-            int year = Integer.parseInt(parts[0]);
+            int year  = Integer.parseInt(parts[0]);
             int month = Integer.parseInt(parts[1]) - 1;
-            int day = Integer.parseInt(parts[2]);
+            int day   = Integer.parseInt(parts[2]);
 
             Calendar today = Calendar.getInstance();
             today.set(Calendar.HOUR_OF_DAY, 0);
@@ -189,14 +251,13 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         }
     }
 
-    private String nextStatus(String current) {
-        if (current == null) return "IN_PROGRESS";
-        switch (current) {
-            case "PENDING":     return "IN_PROGRESS";
-            case "IN_PROGRESS": return "COMPLETED";
-            default:            return current;
-        }
+    private int dpToPx(Context context, int dp) {
+        return Math.round(dp * context.getResources().getDisplayMetrics().density);
     }
+
+    // ─────────────────────────────────────────
+    //  DiffUtil
+    // ─────────────────────────────────────────
 
     private static final DiffUtil.ItemCallback<TaskResponse> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<TaskResponse>() {
@@ -212,6 +273,10 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
                 }
             };
 
+    // ─────────────────────────────────────────
+    //  ViewHolder
+    // ─────────────────────────────────────────
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         View vStatusBar;
         TextView tvStatusBadge, tvDday, tvTaskTitle, tvAssigneeAvatar, tvAssigneeName;
@@ -219,13 +284,13 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            vStatusBar = itemView.findViewById(R.id.v_status_bar);
-            tvStatusBadge = itemView.findViewById(R.id.tv_status_badge);
-            tvDday = itemView.findViewById(R.id.tv_dday);
-            tvTaskTitle = itemView.findViewById(R.id.tv_task_title);
-            tvAssigneeAvatar = itemView.findViewById(R.id.tv_assignee_avatar);
-            tvAssigneeName = itemView.findViewById(R.id.tv_assignee_name);
-            btnAction = itemView.findViewById(R.id.btn_action);
+            vStatusBar        = itemView.findViewById(R.id.v_status_bar);
+            tvStatusBadge     = itemView.findViewById(R.id.tv_status_badge);
+            tvDday            = itemView.findViewById(R.id.tv_dday);
+            tvTaskTitle       = itemView.findViewById(R.id.tv_task_title);
+            tvAssigneeAvatar  = itemView.findViewById(R.id.tv_assignee_avatar);
+            tvAssigneeName    = itemView.findViewById(R.id.tv_assignee_name);
+            btnAction         = itemView.findViewById(R.id.btn_action);
         }
     }
 }
