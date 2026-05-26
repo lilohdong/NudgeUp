@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-// TODO: 사용자 프로필 관련 엔드포인트
-// - @AuthenticationPrincipal CustomUserDetails로 현재 로그인 유저 ID 추출
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -21,29 +19,27 @@ public class UserController {
 
     private final UserService userService;
 
-    // GET /api/v1/users/me
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        // TODO: userService.getMyProfile(userDetails.getUser().getId()) 호출
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("프로필 조회 성공", userService.getMyProfile(userId)));
     }
 
-    // PATCH /api/v1/users/me
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody UpdateUserRequest request) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("프로필이 수정되었습니다.", userService.updateMyProfile(userId, request)));
     }
 
-    // PUT /api/v1/users/me/fcm-token
     @PutMapping("/me/fcm-token")
     public ResponseEntity<ApiResponse<Void>> updateFcmToken(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody FcmTokenRequest request) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        userService.updateFcmToken(userId, request);
+        return ResponseEntity.ok(ApiResponse.success("FCM 토큰이 등록되었습니다.", null));
     }
 }

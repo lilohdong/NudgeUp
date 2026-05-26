@@ -4,11 +4,12 @@ import com.nudgeup.backend.domain.user.dto.request.FcmTokenRequest;
 import com.nudgeup.backend.domain.user.dto.request.UpdateUserRequest;
 import com.nudgeup.backend.domain.user.dto.response.UserResponse;
 import com.nudgeup.backend.domain.user.repository.UserRepository;
+import com.nudgeup.backend.global.exception.CustomException;
+import com.nudgeup.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// TODO: 사용자 프로필 조회/수정, FCM 토큰 등록 비즈니스 로직
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -17,18 +18,25 @@ public class UserService {
     private final UserRepository userRepository;
 
     public UserResponse getMyProfile(Long userId) {
-        // TODO: userRepository.findById(userId) 조회 후 UserResponse.from() 반환
-        return null;
+        return userRepository.findById(userId)
+                .map(UserResponse::from)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Transactional
     public UserResponse updateMyProfile(Long userId, UpdateUserRequest request) {
-        // TODO: 조회 → user.updateProfile() 호출 → UserResponse.from() 반환
-        return null;
+        return userRepository.findById(userId)
+                .map(user -> {
+                    user.updateProfile(request.getUsername(), request.getColor());
+                    return UserResponse.from(user);
+                })
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Transactional
     public void updateFcmToken(Long userId, FcmTokenRequest request) {
-        // TODO: 조회 → user.updateFcmToken() 호출
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
+                .updateFcmToken(request.getFcmToken());
     }
 }
