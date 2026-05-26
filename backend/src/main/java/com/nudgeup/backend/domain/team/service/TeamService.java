@@ -34,7 +34,7 @@ public class TeamService {
     public TeamDetailResponse createTeam(Long userId, CreateTeamRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        String inviteCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        String inviteCode = generateUniqueInviteCode();
         Team team = teamRepository.save(Team.builder()
                 .teamName(request.getTeamName())
                 .leaderId(userId)
@@ -140,6 +140,14 @@ public class TeamService {
                         .ifPresent(m -> m.updateNudgePermission(permission.isCanNudge()));
             }
         }
+    }
+
+    private String generateUniqueInviteCode() {
+        String code;
+        do {
+            code = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        } while (teamRepository.existsByInviteCode(code));
+        return code;
     }
 
     @Transactional
