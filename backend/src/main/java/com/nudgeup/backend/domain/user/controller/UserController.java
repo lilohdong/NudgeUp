@@ -29,7 +29,7 @@ public class UserController {
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateMyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody UpdateUserRequest request) {
+            @Valid @RequestBody UpdateUserRequest request) {
         Long userId = userDetails.getUser().getId();
         return ResponseEntity.ok(ApiResponse.success("프로필이 수정되었습니다.", userService.updateMyProfile(userId, request)));
     }

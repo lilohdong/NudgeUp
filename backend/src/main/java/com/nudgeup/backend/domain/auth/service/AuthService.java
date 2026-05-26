@@ -34,7 +34,6 @@ public class AuthService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .color("#A78BFA")
                 .build());
         return UserResponse.from(user);
     }
@@ -53,10 +52,13 @@ public class AuthService {
     }
 
     public TokenResponse refresh(TokenRefreshRequest request) {
-        if (!jwtProvider.validateToken(request.getRefreshToken())) {
+        String refreshToken = request.getRefreshToken();
+        if (!jwtProvider.isRefreshToken(refreshToken)) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
-        Long userId = jwtProvider.getUserId(request.getRefreshToken());
+        Long userId = jwtProvider.getUserId(refreshToken);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return TokenResponse.builder()
                 .accessToken(jwtProvider.generateAccessToken(userId))
                 .refreshToken(jwtProvider.generateRefreshToken(userId))

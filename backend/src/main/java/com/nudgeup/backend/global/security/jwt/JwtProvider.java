@@ -28,6 +28,7 @@ public class JwtProvider {
     public String generateAccessToken(Long userId) {
         return Jwts.builder()
                 .claim("userId", userId)
+                .claim("type", "ACCESS")
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiry()))
                 .signWith(getSecretKey())
                 .compact();
@@ -36,9 +37,30 @@ public class JwtProvider {
     public String generateRefreshToken(Long userId) {
         return Jwts.builder()
                 .claim("userId", userId)
+                .claim("type", "REFRESH")
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiry()))
                 .signWith(getSecretKey())
                 .compact();
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            Claims claims = Jwts.parser().verifyWith(getSecretKey()).build()
+                    .parseSignedClaims(token).getPayload();
+            return "ACCESS".equals(claims.get("type", String.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser().verifyWith(getSecretKey()).build()
+                    .parseSignedClaims(token).getPayload();
+            return "REFRESH".equals(claims.get("type", String.class));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public Authentication getAuthentication(String token) {
