@@ -5,8 +5,6 @@ import com.nudgeup.backend.domain.user.dto.response.UserResponse;
 import lombok.Builder;
 import lombok.Getter;
 
-// TODO: GET /teams/{teamId}/nudge-logs 응답의 개별 로그 항목 DTO
-// - from(NudgeLog, taskTitle, sentTo, sentBy): 변환 메서드
 @Getter
 @Builder
 public class NudgeLogResponse {
@@ -20,7 +18,13 @@ public class NudgeLogResponse {
 
     public static NudgeLogResponse from(NudgeLog log, String taskTitle,
                                         UserResponse sentTo, UserResponse sentBy) {
-        // TODO: 구현
-        return null;
+        return NudgeLogResponse.builder()
+                .nudgeLogId(log.getId())
+                .taskId(log.getTaskId())
+                .taskTitle(taskTitle)
+                .sentTo(sentTo)
+                .sentBy(sentBy)
+                .sentAt(log.getSentAt() != null ? log.getSentAt().toString() : null)
+                .build();
     }
 }
