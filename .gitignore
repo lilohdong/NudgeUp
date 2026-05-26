@@ -14,7 +14,7 @@ app/local.properties
 app/*.keystore
 app/*.jks
 app/app/google-services.json
-
+app/google-services.json
 # Android Studio
 app/.idea/
 app/captures/
