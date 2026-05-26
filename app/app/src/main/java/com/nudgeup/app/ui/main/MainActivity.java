@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.getCurrentTeam().observe(this, team -> {
+            if (team == null) return;
             tvTeamName.setText(team.getName());
 
             // 팀 탭 선택 표시 갱신

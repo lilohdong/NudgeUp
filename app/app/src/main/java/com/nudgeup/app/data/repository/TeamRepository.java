@@ -1,6 +1,7 @@
 package com.nudgeup.app.data.repository;
 
 import com.nudgeup.app.data.api.TeamApi;
+import com.nudgeup.app.data.dto.request.CreateTeamRequest;
 import com.nudgeup.app.data.dto.request.TeamSettingsRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.MemberResponse;
@@ -22,7 +23,7 @@ public class TeamRepository {
     }
 
     public Call<ApiResponse<TeamResponse>> createTeam(String name) {
-        return teamApi.createTeam(name);
+        return teamApi.createTeam(new CreateTeamRequest(name));
     }
 
     public Call<ApiResponse<List<MemberResponse>>> getMembers(long teamId) {

@@ -1,5 +1,6 @@
 package com.nudgeup.app.data.api;
 
+import com.nudgeup.app.data.dto.request.CreateTeamRequest;
 import com.nudgeup.app.data.dto.request.TeamSettingsRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.MemberResponse;
@@ -18,7 +19,7 @@ public interface TeamApi {
     Call<ApiResponse<List<TeamResponse>>> getMyTeams();
 
     @POST("teams")
-    Call<ApiResponse<TeamResponse>> createTeam(@Body String name);
+    Call<ApiResponse<TeamResponse>> createTeam(@Body CreateTeamRequest request);
 
     @GET("teams/{teamId}/members")
     Call<ApiResponse<List<MemberResponse>>> getMembers(@Path("teamId") long teamId);

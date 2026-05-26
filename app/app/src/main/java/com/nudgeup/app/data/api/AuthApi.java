@@ -1,6 +1,7 @@
 package com.nudgeup.app.data.api;
 
 import com.nudgeup.app.data.dto.request.LoginRequest;
+import com.nudgeup.app.data.dto.request.RefreshRequest;
 import com.nudgeup.app.data.dto.request.RegisterRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.AuthResponse;
@@ -17,5 +18,5 @@ public interface AuthApi {
     Call<ApiResponse<AuthResponse>> login(@Body LoginRequest request);
 
     @POST("auth/refresh")
-    Call<ApiResponse<AuthResponse>> refresh(@Body String refreshToken);
+    Call<ApiResponse<AuthResponse>> refresh(@Body RefreshRequest request);
 }

@@ -195,9 +195,10 @@ public class MainViewModel extends ViewModel {
 
     public void updateTaskStatus(long taskId, String newStatus) {
         // TODO: 백엔드 연결 후 API 호출로 교체
-        for (TaskResponse t : allTasksCache) {
+        for (int i = 0; i < allTasksCache.size(); i++) {
+            TaskResponse t = allTasksCache.get(i);
             if (t.getId() == taskId) {
-                allTasksCache.set(allTasksCache.indexOf(t),
+                allTasksCache.set(i,
                         new TaskResponse(t.getId(), t.getTitle(), newStatus, t.getDueDate(), t.getAssignee()));
                 break;
             }

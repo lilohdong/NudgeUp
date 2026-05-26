@@ -67,7 +67,7 @@ public class RegisterActivity extends AppCompatActivity {
             String password = etPassword.getText().toString().trim();
             String passwordConfirm = etPasswordConfirm.getText().toString().trim();
 
-            if (id.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            if (id.isEmpty() || email.isEmpty() || password.isEmpty() || passwordConfirm.isEmpty()) {
                 Toast.makeText(this, "모든 항목을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }

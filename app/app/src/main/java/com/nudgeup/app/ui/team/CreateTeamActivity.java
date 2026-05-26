@@ -54,6 +54,8 @@ public class CreateTeamActivity extends AppCompatActivity {
             bg.setShape(GradientDrawable.OVAL);
             bg.setColor(color);
             colorCircle.setBackground(bg);
+            // 색상 값을 tag로 저장해 복원 시 사용
+            colorCircle.setTag(color);
 
             // 첫 번째 색상 기본 선택
             if (i == 0) {
@@ -63,14 +65,14 @@ public class CreateTeamActivity extends AppCompatActivity {
 
             colorCircle.setOnClickListener(v -> {
                 selectedColor = color;
-                // 이전 선택 테두리 제거
+                // 이전 선택 테두리 제거 — tag에서 원래 색상 복원
                 if (lastSelectedView != null) {
+                    int prevColor = (int) lastSelectedView.getTag();
                     GradientDrawable prevBg = new GradientDrawable();
                     prevBg.setShape(GradientDrawable.OVAL);
-                    prevBg.setColor(((GradientDrawable)lastSelectedView.getBackground()).getColor() != null
-                            ? ((GradientDrawable)lastSelectedView.getBackground()).getColor().getDefaultColor()
-                            : color);
+                    prevBg.setColor(prevColor);
                     lastSelectedView.setBackground(prevBg);
+                    lastSelectedView.setTag(prevColor); // tag 유지
                 }
                 // 새 선택 테두리 적용
                 GradientDrawable newBg = new GradientDrawable();

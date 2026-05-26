@@ -36,7 +36,7 @@ public class TokenManager {
         prefs = p;
     }
 
-    public static TokenManager getInstance(Context context) {
+    public static synchronized TokenManager getInstance(Context context) {
         if (instance == null) {
             instance = new TokenManager(context.getApplicationContext());
         }
