@@ -19,7 +19,7 @@
             android:layout_height="40dp"
             android:layout_marginTop="14dp"
             android:layout_marginBottom="10dp"
-            android:src="@drawable/nudge_up_logo"
+            android:src="@drawable/nudge_up_logo_black"
             android:scaleType="fitCenter"
             android:contentDescription="NudgeUp 로고"/>
 
@@ -46,7 +46,7 @@
 
         </ScrollView>
 
-        <!-- 팀 추가 버튼 (라임 배경에 어두운 원) -->
+        <!-- 팀 추가 버튼 (배경 없이 + 기호만) -->
         <TextView
             android:id="@+id/btn_add_team"
             android:layout_width="42dp"
@@ -54,10 +54,10 @@
             android:layout_marginBottom="16dp"
             android:gravity="center"
             android:text="+"
-            android:textSize="26sp"
+            android:textSize="30sp"
             android:textStyle="bold"
-            android:textColor="@color/color_lime"
-            android:background="@drawable/bg_add_team_btn"/>
+            android:textColor="#13131F"
+            android:background="@android:color/transparent"/>
 
     </LinearLayout>
 

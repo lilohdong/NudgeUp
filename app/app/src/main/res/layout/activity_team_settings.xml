@@ -67,15 +67,38 @@
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="10dp"/>
 
-            <Spinner
-                android:id="@+id/spinner_new_leader"
+            <!-- 커스텀 팀장 위임 드롭다운 -->
+            <LinearLayout
+                android:id="@+id/dropdown_leader"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_input"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:layout_marginBottom="28dp"
-                android:dropDownVerticalOffset="52dp"/>
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/tv_selected_leader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="#FFFFFF"
+                    android:hint="팀장 선택"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_chevron_down"
+                    android:scaleType="fitCenter"/>
+
+            </LinearLayout>
 
             <!-- 독촉 권한 설정 -->
             <TextView

@@ -1,11 +1,15 @@
 package com.nudgeup.app.ui.team;
 
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Spinner;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -13,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nudgeup.app.R;
 import com.nudgeup.app.data.dto.response.MemberResponse;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TeamSettingsActivity extends AppCompatActivity {
@@ -21,6 +24,9 @@ public class TeamSettingsActivity extends AppCompatActivity {
     private TeamSettingsViewModel viewModel;
     private long teamId;
     private MemberNudgeAdapter memberNudgeAdapter;
+    private TextView tvSelectedLeader;
+    private long selectedLeaderId = -1L;
+    private List<MemberResponse> memberList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,42 +38,33 @@ public class TeamSettingsActivity extends AppCompatActivity {
 
         View btnClose = findViewById(R.id.btn_close);
         Button btnSave = findViewById(R.id.btn_save);
-        Spinner spinnerLeader = findViewById(R.id.spinner_new_leader);
+        LinearLayout dropdownLeader = findViewById(R.id.dropdown_leader);
+        tvSelectedLeader = findViewById(R.id.tv_selected_leader);
         RecyclerView rvMembers = findViewById(R.id.rv_members);
 
         rvMembers.setLayoutManager(new LinearLayoutManager(this));
 
         btnClose.setOnClickListener(v -> finish());
 
+        dropdownLeader.setOnClickListener(v -> {
+            if (memberList != null && !memberList.isEmpty()) {
+                showLeaderDropdown(dropdownLeader);
+            }
+        });
+
         viewModel.getMembers().observe(this, members -> {
             if (members == null || members.isEmpty()) return;
+            memberList = members;
 
-            // 스피너 (팀장 위임)
-            List<String> nameList = new ArrayList<>();
+            // 현재 팀장 초기 표시
             for (MemberResponse m : members) {
-                nameList.add(m.getName() + (m.getRole().equals("LEADER") ? " (현 팀장)" : ""));
-            }
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
-                    this, android.R.layout.simple_spinner_item, nameList);
-            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerLeader.setAdapter(spinnerAdapter);
-
-            // 현재 팀장 선택
-            for (int i = 0; i < members.size(); i++) {
-                if ("LEADER".equals(members.get(i).getRole())) {
-                    spinnerLeader.setSelection(i);
+                if ("LEADER".equals(m.getRole())) {
+                    selectedLeaderId = m.getUserId();
+                    tvSelectedLeader.setText(m.getName() + " (현 팀장)");
+                    viewModel.setNewLeader(m.getUserId());
                     break;
                 }
             }
-
-            spinnerLeader.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    viewModel.setNewLeader(members.get(position).getUserId());
-                }
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
 
             // 독촉 권한 RecyclerView
             if (memberNudgeAdapter == null) {
@@ -87,7 +84,68 @@ public class TeamSettingsActivity extends AppCompatActivity {
         });
 
         btnSave.setOnClickListener(v -> viewModel.saveSettings(teamId));
-
         viewModel.loadMembers(teamId);
+    }
+
+    private void showLeaderDropdown(View anchor) {
+        // 팝업 컨테이너
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setBackgroundResource(R.drawable.bg_dropdown);
+        container.setPadding(0, dpToPx(4), 0, dpToPx(4));
+
+        // PopupWindow 먼저 생성 (람다에서 참조하기 위해)
+        PopupWindow popup = new PopupWindow(container,
+                anchor.getWidth(),
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+        popup.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        popup.setElevation(16f);
+        popup.setOutsideTouchable(true);
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (int i = 0; i < memberList.size(); i++) {
+            MemberResponse member = memberList.get(i);
+            View itemView = inflater.inflate(R.layout.item_leader_dropdown, container, false);
+            TextView tvName = itemView.findViewById(R.id.tv_leader_name);
+            ImageView ivCheck = itemView.findViewById(R.id.iv_leader_check);
+
+            boolean isCurrentLeader = "LEADER".equals(member.getRole());
+            String label = member.getName() + (isCurrentLeader ? " (현 팀장)" : "");
+            tvName.setText(label);
+
+            boolean isSelected = member.getUserId() == selectedLeaderId;
+            ivCheck.setVisibility(isSelected ? View.VISIBLE : View.GONE);
+            tvName.setTextColor(isSelected ? 0xFFD4FF00 : 0xFFCCCCCC);
+
+            final long memberId = member.getUserId();
+            final String memberLabel = label;
+            itemView.setOnClickListener(v -> {
+                selectedLeaderId = memberId;
+                viewModel.setNewLeader(memberId);
+                tvSelectedLeader.setText(memberLabel);
+                popup.dismiss();
+            });
+
+            container.addView(itemView);
+
+            // 구분선 (마지막 항목 제외)
+            if (i < memberList.size() - 1) {
+                View divider = new View(this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, 1);
+                lp.setMarginStart(dpToPx(16));
+                lp.setMarginEnd(dpToPx(16));
+                divider.setLayoutParams(lp);
+                divider.setBackgroundColor(0xFF2A2A45);
+                container.addView(divider);
+            }
+        }
+
+        popup.showAsDropDown(anchor, 0, dpToPx(4));
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 }
