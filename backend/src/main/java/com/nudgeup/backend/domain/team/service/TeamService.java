@@ -19,8 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-// TODO: 팀 생성/조회/참가/설정/탈퇴 비즈니스 로직
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,59 +32,123 @@ public class TeamService {
 
     @Transactional
     public TeamDetailResponse createTeam(Long userId, CreateTeamRequest request) {
-        // TODO: 구현
-        // 1. User 조회
-        // 2. inviteCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase()
-        // 3. Team.builder()...build() → teamRepository.save()
-        // 4. 생성자를 LEADER로 TeamMember 저장 (canNudge=true)
-        // 5. TeamDetailResponse 반환
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        String inviteCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        Team team = teamRepository.save(Team.builder()
+                .teamName(request.getTeamName())
+                .leaderId(userId)
+                .inviteCode(inviteCode)
+                .build());
+        TeamMember member = teamMemberRepository.save(TeamMember.builder()
+                .teamId(team.getId())
+                .user(user)
+                .role(TeamRole.LEADER)
+                .canNudge(true)
+                .build());
+        return TeamDetailResponse.from(team, List.of(TeamMemberResponse.from(member)));
     }
 
     public List<TeamResponse> getMyTeams(Long userId) {
-        // TODO: 구현
-        // 1. teamMemberRepository.findAllByUserId(userId)로 멤버십 목록 조회
-        // 2. 각 teamId로 Team 조회 후 TeamResponse 매핑
-        return null;
+        return teamMemberRepository.findAllByUserId(userId).stream()
+                .map(membership -> {
+                    Team team = teamRepository.findById(membership.getTeamId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+                    int memberCount = (int) teamMemberRepository.countByTeamId(team.getId());
+                    return TeamResponse.builder()
+                            .teamId(team.getId())
+                            .teamName(team.getTeamName())
+                            .leaderId(team.getLeaderId())
+                            .memberCount(memberCount)
+                            .myRole(membership.getRole())
+                            .createdAt(team.getCreatedAt().toString())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     public TeamDetailResponse getTeamDetail(Long userId, Long teamId) {
-        // TODO: 구현
-        // 1. 팀 소속 검증: teamMemberRepository.findByTeamIdAndUserId() → 없으면 NOT_TEAM_MEMBER
-        // 2. teamMemberRepository.findByTeamId()로 전체 멤버 조회
-        // 3. TeamDetailResponse.from() 반환
-        return null;
+        teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        List<TeamMemberResponse> members = teamMemberRepository.findByTeamId(teamId).stream()
+                .map(TeamMemberResponse::from)
+                .collect(Collectors.toList());
+        return TeamDetailResponse.from(team, members);
     }
 
     public InviteResponse getInviteCode(Long userId, Long teamId) {
-        // TODO: 팀 소속 검증 후 inviteCode 조회, InviteResponse 반환
-        return null;
+        teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        return InviteResponse.builder()
+                .inviteCode(team.getInviteCode())
+                .inviteLink("nudgeup://join?code=" + team.getInviteCode())
+                .build();
     }
 
     @Transactional
     public TeamResponse joinTeam(Long userId, JoinTeamRequest request) {
-        // TODO: 구현
-        // 1. teamRepository.findByInviteCode() → 없으면 INVALID_INVITE_CODE
-        // 2. 중복 참가 검사: existsByTeamIdAndUserId() → ALREADY_TEAM_MEMBER
-        // 3. MEMBER 역할로 TeamMember 저장 (canNudge=false)
-        return null;
+        Team team = teamRepository.findByInviteCode(request.getInviteCode())
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INVITE_CODE));
+        if (teamMemberRepository.existsByTeamIdAndUserId(team.getId(), userId)) {
+            throw new CustomException(ErrorCode.ALREADY_TEAM_MEMBER);
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        teamMemberRepository.save(TeamMember.builder()
+                .teamId(team.getId())
+                .user(user)
+                .role(TeamRole.MEMBER)
+                .canNudge(false)
+                .build());
+        int memberCount = (int) teamMemberRepository.countByTeamId(team.getId());
+        return TeamResponse.builder()
+                .teamId(team.getId())
+                .teamName(team.getTeamName())
+                .leaderId(team.getLeaderId())
+                .memberCount(memberCount)
+                .myRole(TeamRole.MEMBER)
+                .createdAt(team.getCreatedAt().toString())
+                .build();
     }
 
     @Transactional
     public void updateTeamSettings(Long userId, Long teamId, UpdateTeamSettingsRequest request) {
-        // TODO: 구현
-        // 1. teamMemberRepository.findByTeamIdAndUserId() → 없으면 NOT_TEAM_MEMBER
-        // 2. LEADER 여부 검증 → 아니면 NOT_TEAM_LEADER
-        // 3. request.getTeamName() != null → team.updateTeamName()
-        // 4. request.getNewLeaderId() != null → 기존 팀장 MEMBER로, 새 팀장 LEADER로 + team.updateLeader()
-        // 5. memberPermissions 순회 → teamMember.updateNudgePermission()
+        TeamMember myMembership = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        if (myMembership.getRole() != TeamRole.LEADER) {
+            throw new CustomException(ErrorCode.NOT_TEAM_LEADER);
+        }
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+        if (request.getTeamName() != null) {
+            team.updateTeamName(request.getTeamName());
+        }
+        if (request.getNewLeaderId() != null) {
+            myMembership.updateRole(TeamRole.MEMBER);
+            TeamMember newLeader = teamMemberRepository.findByTeamIdAndUserId(teamId, request.getNewLeaderId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+            newLeader.updateRole(TeamRole.LEADER);
+            team.updateLeader(request.getNewLeaderId());
+        }
+        if (request.getMemberPermissions() != null) {
+            for (UpdateTeamSettingsRequest.MemberPermission permission : request.getMemberPermissions()) {
+                teamMemberRepository.findByTeamIdAndUserId(teamId, permission.getUserId())
+                        .ifPresent(m -> m.updateNudgePermission(permission.isCanNudge()));
+            }
+        }
     }
 
     @Transactional
     public void leaveTeam(Long userId, Long teamId) {
-        // TODO: 구현
-        // 1. 멤버십 조회 → NOT_TEAM_MEMBER
-        // 2. LEADER면 LEADER_CANNOT_LEAVE throw
-        // 3. TeamMember 삭제
+        TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        if (member.getRole() == TeamRole.LEADER) {
+            throw new CustomException(ErrorCode.LEADER_CANNOT_LEAVE);
+        }
+        teamMemberRepository.delete(member);
     }
 }
