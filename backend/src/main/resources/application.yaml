@@ -18,3 +18,10 @@ spring:
 server:
   port: 8080
 
+jwt:
+  secret: ${JWT_SECRET:nudgeup-default-secret-key-for-development-only-change-in-prod}
+  access-token-expiry: 3600000
+  refresh-token-expiry: 1209600000
+
+fcm:
+  credentials-path: classpath:firebase-service-account.json
