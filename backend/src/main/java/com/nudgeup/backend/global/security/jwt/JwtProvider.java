@@ -1,44 +1,66 @@
 package com.nudgeup.backend.global.security.jwt;
 
+import com.nudgeup.backend.global.security.CustomUserDetailsService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-// TODO: JWT 토큰 생성 / 파싱 / 검증 담당
-// - generateAccessToken(userId): access token 생성 (claim에 userId 포함)
-// - generateRefreshToken(userId): refresh token 생성
-// - getAuthentication(token): 토큰에서 Authentication 객체 추출
-// - validateToken(token): 유효성 검증 (만료/위변조 여부)
-// - getUserId(token): 토큰 claim에서 userId 추출
-// 의존성: io.jsonwebtoken:jjwt-api (build.gradle에 이미 추가됨)
+import javax.crypto.SecretKey;
+import java.util.Date;
+
 @Component
 @RequiredArgsConstructor
 public class JwtProvider {
 
     private final JwtProperties jwtProperties;
+    private final CustomUserDetailsService customUserDetailsService;
+
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getSecret()));
+    }
 
     public String generateAccessToken(Long userId) {
-        // TODO: 구현
-        return null;
+        return Jwts.builder()
+                .claim("userId", userId)
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiry()))
+                .signWith(getSecretKey())
+                .compact();
     }
 
     public String generateRefreshToken(Long userId) {
-        // TODO: 구현
-        return null;
+        return Jwts.builder()
+                .claim("userId", userId)
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiry()))
+                .signWith(getSecretKey())
+                .compact();
     }
 
     public Authentication getAuthentication(String token) {
-        // TODO: 구현
-        return null;
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(getUserId(token).toString());
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
     public boolean validateToken(String token) {
-        // TODO: 구현
-        return false;
+        try {
+            Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public Long getUserId(String token) {
-        // TODO: 구현
-        return null;
+        Claims claims = Jwts.parser()
+                .verifyWith(getSecretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.get("userId", Long.class);
     }
 }
