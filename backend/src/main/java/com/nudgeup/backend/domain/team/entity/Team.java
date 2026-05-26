@@ -2,12 +2,10 @@ package com.nudgeup.backend.domain.team.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-// TODO: teams 테이블과 매핑되는 JPA 엔티티
-// DB 컬럼: id, team_name, leader_id, invite_code, created_at
-// - inviteCode: 팀 생성 시 UUID 앞 8자리로 자동 생성 (unique)
-// - updateLeader(): 팀장 변경 메서드
-// - updateTeamName(): 팀 이름 변경 메서드
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "teams")
 @Getter
@@ -27,18 +25,22 @@ public class Team {
     @Column(name = "invite_code", nullable = false, unique = true, length = 20)
     private String inviteCode;
 
-    // TODO: @CreationTimestamp LocalDateTime createdAt 추가
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     @Builder
     public Team(String teamName, Long leaderId, String inviteCode) {
-        // TODO: 구현
+        this.teamName = teamName;
+        this.leaderId = leaderId;
+        this.inviteCode = inviteCode;
     }
 
     public void updateLeader(Long newLeaderId) {
-        // TODO: 구현
+        this.leaderId = newLeaderId;
     }
 
     public void updateTeamName(String teamName) {
-        // TODO: 구현
+        this.teamName = teamName;
     }
 }
