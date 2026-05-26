@@ -2,13 +2,10 @@ package com.nudgeup.backend.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-// TODO: users 테이블과 매핑되는 JPA 엔티티
-// DB 컬럼: id, username, email, password, color, fcm_token, created_at
-// - fcmToken: FCM 푸시 알림 수신용 디바이스 토큰 (앱 실행 시 갱신)
-// - color: 프로필 아이콘 색상 (HEX, 기본값 "#A78BFA")
-// - updateProfile(): username, color 변경 메서드 (엔티티 내부에서 상태 변경 캡슐화)
-// - updateFcmToken(): fcmToken 갱신 메서드
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -34,18 +31,24 @@ public class User {
     @Column(name = "fcm_token")
     private String fcmToken;
 
-    // TODO: @CreationTimestamp LocalDateTime createdAt 추가
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     @Builder
     public User(String username, String email, String password, String color) {
-        // TODO: 구현
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.color = color != null ? color : "#A78BFA";
     }
 
     public void updateProfile(String username, String color) {
-        // TODO: 구현
+        if (username != null) this.username = username;
+        if (color != null) this.color = color;
     }
 
     public void updateFcmToken(String fcmToken) {
-        // TODO: 구현
+        this.fcmToken = fcmToken;
     }
 }
