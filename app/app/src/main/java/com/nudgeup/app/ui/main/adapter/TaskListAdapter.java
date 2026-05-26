@@ -26,6 +26,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
     private final OnNudgeClickListener nudgeListener;
     private final OnStatusChangeListener statusListener;
+    private final boolean isMyTaskMode; // true = 내 할일 (수정 아이콘), false = 팀 할일 (종 아이콘)
 
     private static final int[] AVATAR_COLORS = {
         0xFF7B3FE4, // purple
@@ -36,10 +37,11 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         0xFF1ABC9C, // teal
     };
 
-    public TaskListAdapter(OnNudgeClickListener nudgeListener, OnStatusChangeListener statusListener) {
+    public TaskListAdapter(OnNudgeClickListener nudgeListener, OnStatusChangeListener statusListener, boolean isMyTaskMode) {
         super(DIFF_CALLBACK);
         this.nudgeListener = nudgeListener;
         this.statusListener = statusListener;
+        this.isMyTaskMode = isMyTaskMode;
     }
 
     @NonNull
@@ -137,7 +139,12 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         }
 
         // 액션 버튼
-        if (isCompleted) {
+        if (isMyTaskMode) {
+            // 내 할일: 항상 수정 아이콘으로 작업 이동
+            holder.btnAction.setImageResource(R.drawable.ic_edit);
+            holder.btnAction.setAlpha(1.0f);
+            holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
+        } else if (isCompleted) {
             holder.btnAction.setImageResource(R.drawable.ic_edit);
             holder.btnAction.setAlpha(0.4f);
             holder.btnAction.setOnClickListener(null);

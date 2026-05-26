@@ -5,12 +5,12 @@
     android:orientation="horizontal"
     android:gravity="center_vertical">
 
-    <!-- 선택 표시 바 (왼쪽 라임색 선) -->
+    <!-- 선택 표시 바 (라임 사이드바에서 어두운 색 사용) -->
     <View
         android:id="@+id/v_active_indicator"
         android:layout_width="3dp"
         android:layout_height="38dp"
-        android:background="@color/color_lime"
+        android:background="@color/color_lime_text"
         android:visibility="gone"/>
 
     <!-- 팀 초성 아바타 -->

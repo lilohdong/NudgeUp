@@ -3,34 +3,151 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
     android:padding="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="내 프로필"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/tv_user_name"
+    <!-- 아바타 + 이름 + 역할 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="이름"
-        android:layout_marginBottom="8dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
 
-    <TextView
-        android:id="@+id/tv_user_email"
+        <!-- 프로필 아바타 원 (색상은 코드에서 설정) -->
+        <TextView
+            android:id="@+id/tv_profile_avatar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:gravity="center"
+            android:text="이"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/color_lime_text"
+            android:background="@drawable/bg_member_avatar"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="14dp">
+
+            <TextView
+                android:id="@+id/tv_user_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="이원호"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="6dp"/>
+
+            <!-- 역할 배지 -->
+            <TextView
+                android:id="@+id/tv_user_role"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="팀장"
+                android:textSize="11sp"
+                android:textColor="@color/color_lime_text"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:background="@drawable/bg_btn_lime"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/color_border"
+        android:layout_marginBottom="18dp"/>
+
+    <!-- 팀 정보 카드 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="이메일"
-        android:layout_marginBottom="24dp" />
+        android:orientation="vertical"
+        android:background="@drawable/bg_card"
+        android:padding="14dp"
+        android:layout_marginBottom="20dp">
 
+        <!-- 현재 팀 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="현재 팀"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"/>
+
+            <TextView
+                android:id="@+id/tv_current_team"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="개발팀"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/color_border"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- 초대 코드 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="초대 코드"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"/>
+
+            <TextView
+                android:id="@+id/tv_invite_code"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DEV001"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:textColor="@color/color_lime"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 로그아웃 버튼 -->
     <Button
         android:id="@+id/btn_logout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="로그아웃" />
+        android:layout_height="48dp"
+        android:text="로그아웃"
+        android:textColor="#FF4444"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:background="@drawable/bg_logout_btn"/>
 
 </LinearLayout>

@@ -62,13 +62,14 @@ public class TeamTabAdapter {
             avatarBg.setColor(color);
             tvInitial.setBackground(avatarBg);
 
-            // 선택 표시
+            // 선택 표시 (라임 사이드바 위에서 어두운 오버레이 사용)
             if (team.getId() == selectedTeamId) {
                 activeIndicator.setVisibility(View.VISIBLE);
-                tabView.setBackgroundColor(0x1AD4FF00);
+                activeIndicator.setBackgroundColor(0xFF1A1A2E); // 어두운 인디케이터
+                tabView.setBackgroundColor(0x25000000); // 미묘한 어두운 오버레이
             } else {
                 activeIndicator.setVisibility(View.GONE);
-                tabView.setBackgroundColor(0x00000000);
+                tabView.setBackgroundColor(0x00000000); // 투명
             }
 
             tabView.setOnClickListener(v -> {

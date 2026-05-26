@@ -19,7 +19,7 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
     }
 
     private static final int[] AVATAR_COLORS = {
-        0xFFD4FF00, // lime (전체 버튼)
+        0xFF5B6B7A, // 채도 낮은 슬레이트 (전체 버튼)
         0xFF7B3FE4, // purple
         0xFF3498DB, // blue
         0xFFE74C3C, // red
