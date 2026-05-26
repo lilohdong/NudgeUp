@@ -6,9 +6,6 @@ import lombok.Getter;
 
 import java.util.List;
 
-// TODO: GET /teams/{teamId} 응답 DTO
-// - members: TeamMemberResponse 리스트 포함
-// - from(Team, List<TeamMemberResponse>): 엔티티 + 멤버 목록 → DTO 변환
 @Getter
 @Builder
 public class TeamDetailResponse {
@@ -17,11 +14,19 @@ public class TeamDetailResponse {
     private String teamName;
     private Long leaderId;
     private String inviteCode;
+    private String inviteLink;
     private String createdAt;
     private List<TeamMemberResponse> members;
 
     public static TeamDetailResponse from(Team team, List<TeamMemberResponse> members) {
-        // TODO: 구현
-        return null;
+        return TeamDetailResponse.builder()
+                .teamId(team.getId())
+                .teamName(team.getTeamName())
+                .leaderId(team.getLeaderId())
+                .inviteCode(team.getInviteCode())
+                .inviteLink("nudgeup://join?code=" + team.getInviteCode())
+                .createdAt(team.getCreatedAt().toString())
+                .members(members)
+                .build();
     }
 }

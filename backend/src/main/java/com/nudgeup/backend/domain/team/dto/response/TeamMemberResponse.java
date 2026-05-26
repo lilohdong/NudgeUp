@@ -5,8 +5,6 @@ import com.nudgeup.backend.domain.team.entity.TeamRole;
 import lombok.Builder;
 import lombok.Getter;
 
-// TODO: 팀원 정보 응답 DTO (팀 상세 조회 시 members 배열의 각 항목)
-// - from(TeamMember): 엔티티 → DTO 변환
 @Getter
 @Builder
 public class TeamMemberResponse {
@@ -19,7 +17,13 @@ public class TeamMemberResponse {
     private String joinedAt;
 
     public static TeamMemberResponse from(TeamMember member) {
-        // TODO: 구현
-        return null;
+        return TeamMemberResponse.builder()
+                .userId(member.getUser().getId())
+                .username(member.getUser().getUsername())
+                .color(member.getUser().getColor())
+                .role(member.getRole())
+                .canNudge(member.isCanNudge())
+                .joinedAt(member.getJoinedAt().toString())
+                .build();
     }
 }
