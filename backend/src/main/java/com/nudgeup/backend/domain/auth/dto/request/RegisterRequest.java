@@ -5,15 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
-// TODO: POST /auth/register 요청 바디
-// - username: 1~50자, 공백 불가
-// - email: 이메일 형식 검증
-// - password: 8자 이상
 @Getter
 public class RegisterRequest {
 
     @NotBlank(message = "이름은 필수입니다.")
-    @Size(max = 50)
     private String username;
 
     @NotBlank(message = "이메일은 필수입니다.")
