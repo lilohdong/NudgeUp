@@ -44,10 +44,12 @@ public class TaskService {
                     .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
         }
 
-        User assignee = userRepository.findById(assigneeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         User creator = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User assignee = assigneeId.equals(userId)
+                ? creator
+                : userRepository.findById(assigneeId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Task task = taskRepository.save(Task.builder()
                 .teamId(teamId)
@@ -110,7 +112,11 @@ public class TaskService {
             throw new CustomException(ErrorCode.NO_TASK_PERMISSION);
         }
 
-        task.changeStatus(request.getStatus());
+        TaskStatus newStatus = request.getStatus();
+        if (task.getStatus() == TaskStatus.IN_PROGRESS && newStatus == TaskStatus.PENDING) {
+            throw new CustomException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+        task.changeStatus(newStatus);
         return toResponse(task);
     }
 
