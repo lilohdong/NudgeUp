@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// TODO: 작업 관련 엔드포인트
 @RestController
 @RequestMapping("/api/v1/teams/{teamId}/tasks")
 @RequiredArgsConstructor
@@ -23,44 +22,41 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    // POST /api/v1/teams/{teamId}/tasks
     @PostMapping
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long teamId,
             @Valid @RequestBody CreateTaskRequest request) {
-        // TODO: 구현, 201 반환
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(ApiResponse.success("작업이 생성되었습니다.", taskService.createTask(userId, teamId, request)));
     }
 
-    // GET /api/v1/teams/{teamId}/tasks?status=
     @GetMapping
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTeamTasks(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long teamId,
             @RequestParam(required = false) TaskStatus status) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("팀 작업 목록 조회 성공", taskService.getTeamTasks(userId, teamId, status)));
     }
 
-    // GET /api/v1/teams/{teamId}/tasks/my?status=
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getMyTasks(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long teamId,
             @RequestParam(required = false) TaskStatus status) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("내 작업 목록 조회 성공", taskService.getMyTasks(userId, teamId, status)));
     }
 
-    // PATCH /api/v1/teams/{teamId}/tasks/{taskId}/status
     @PatchMapping("/{taskId}/status")
     public ResponseEntity<ApiResponse<TaskResponse>> updateTaskStatus(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long teamId,
             @PathVariable Long taskId,
             @Valid @RequestBody UpdateTaskStatusRequest request) {
-        // TODO: 구현
-        return null;
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("작업 상태가 변경되었습니다.", taskService.updateTaskStatus(userId, teamId, taskId, request)));
     }
 }

@@ -16,10 +16,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NudgeUp">
 
-        <!-- 런처: 로그인 화면 -->
+        <!-- 런처: 로그인 화면 — API 31+는 Theme.NudgeUp(values-v31)의 android:windowSplashScreen* 으로 시스템 스플래시 자동 처리 -->
         <activity
             android:name=".ui.auth.LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.NudgeUp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

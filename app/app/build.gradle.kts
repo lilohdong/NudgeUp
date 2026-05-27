@@ -58,6 +58,9 @@ dependencies {
     // JWT 안전 저장
     implementation(libs.security.crypto)
 
+    // Splash Screen
+    implementation(libs.core.splashscreen)
+
     // FCM
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)

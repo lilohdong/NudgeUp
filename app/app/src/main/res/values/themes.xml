@@ -1,9 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.NudgeUp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.NudgeUp" parent="Base.Theme.NudgeUp" />
+    <style name="Theme.NudgeUp" parent="Base.Theme.NudgeUp">
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <!-- API 31+ 시스템 스플래시 화면 설정 (pre-31에서는 무시됨) -->
+        <item name="android:windowSplashScreenBackground">@color/bg_dark</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
+    </style>
 </resources>
