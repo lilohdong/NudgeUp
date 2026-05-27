@@ -41,6 +41,10 @@ public class NudgeService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
 
+        if (!task.getTeamId().equals(teamId)) {
+            throw new CustomException(ErrorCode.TASK_NOT_FOUND);
+        }
+
         if (task.getStatus() == TaskStatus.COMPLETED) {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
@@ -95,6 +99,11 @@ public class NudgeService {
 
         List<NudgeLog> logs;
         if (taskId != null) {
+            Task targetTask = taskRepository.findById(taskId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
+            if (!targetTask.getTeamId().equals(teamId)) {
+                throw new CustomException(ErrorCode.TASK_NOT_FOUND);
+            }
             logs = nudgeLogRepository.findByTaskId(taskId);
         } else {
             List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
