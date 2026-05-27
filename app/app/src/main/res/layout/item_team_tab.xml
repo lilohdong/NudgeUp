@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="65dp"
+    android:layout_height="62dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical">
+
+    <!-- 선택 표시 바 (라임 사이드바에서 어두운 색 사용) -->
+    <View
+        android:id="@+id/v_active_indicator"
+        android:layout_width="3dp"
+        android:layout_height="38dp"
+        android:background="@color/color_lime_text"
+        android:visibility="gone"/>
+
+    <!-- 팀 초성 아바타 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tv_team_initial"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:gravity="center"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_member_avatar"/>
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="18dp"
+    android:paddingBottom="22dp">
+
+    <!-- ── 헤더: 제목 + 편집/닫기 버튼 ── -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginBottom="18dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="프로필"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:letterSpacing="0.04"/>
+
+        <ImageButton
+            android:id="@+id/btn_edit_profile"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_edit"
+            android:background="@android:color/transparent"
+            android:scaleType="center"
+            android:contentDescription="프로필 편집"/>
+
+    </RelativeLayout>
+
+    <!-- ── 아바타 + 이름/역할 섹션 (항상 표시) ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="20dp">
+
+        <!-- 아바타 (편집 뱃지 오버레이 포함) -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:id="@+id/tv_profile_avatar"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:gravity="center"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#13131F"/>
+
+            <!-- 편집 모드에서만 보이는 뱃지 -->
+            <FrameLayout
+                android:id="@+id/fl_avatar_edit_badge"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="bottom|end"
+                android:background="@drawable/bg_avatar_edit_badge"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_edit"
+                    android:scaleType="fitCenter"/>
+
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <!-- VIEW MODE: 이름 텍스트 -->
+        <TextView
+            android:id="@+id/tv_user_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- EDIT MODE: 이름 입력 EditText (기본 gone) -->
+        <EditText
+            android:id="@+id/et_display_name"
+            android:layout_width="180dp"
+            android:layout_height="40dp"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#8888AA"
+            android:hint="이름 입력"
+            android:gravity="center"
+            android:background="@drawable/bg_name_edit"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:maxLines="1"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"/>
+
+        <!-- 역할 배지 (항상 표시) -->
+        <TextView
+            android:id="@+id/tv_user_role"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:textSize="11sp"
+            android:textColor="@color/color_lime"
+            android:background="@drawable/bg_role_badge"/>
+
+    </LinearLayout>
+
+    <!-- ── VIEW MODE 전용 콘텐츠 ── -->
+    <LinearLayout
+        android:id="@+id/layout_view_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#2A2A45"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- 로그아웃 버튼 -->
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="로그아웃"
+            android:textColor="#FF4444"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_logout_btn"/>
+
+    </LinearLayout>
+
+    <!-- ── EDIT MODE 전용 콘텐츠 (기본 gone) ── -->
+    <LinearLayout
+        android:id="@+id/layout_edit_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#2A2A45"
+            android:layout_marginBottom="18dp"/>
+
+        <!-- 아바타 색상 레이블 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="아바타 색상"
+            android:textSize="11sp"
+            android:textColor="#8888AA"
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- 색상 스와치 (코드에서 동적 생성) -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:layout_marginBottom="22dp">
+
+            <LinearLayout
+                android:id="@+id/color_swatches_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="4dp"/>
+
+        </HorizontalScrollView>
+
+        <!-- 저장 버튼 -->
+        <Button
+            android:id="@+id/btn_save_profile"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="저장하기"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#13131F"
+            android:background="@drawable/bg_btn_lime"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- 취소 텍스트 버튼 -->
+        <TextView
+            android:id="@+id/btn_cancel_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="취소"
+            android:textSize="13sp"
+            android:textColor="#8888AA"
+            android:paddingTop="10dp"
+            android:paddingBottom="4dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

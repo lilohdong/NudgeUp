@@ -2,4 +2,26 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- NudgeUp 다크 테마 -->
+    <color name="bg_dark">#1A1A2E</color>
+    <color name="bg_surface">#252540</color>
+    <color name="color_primary">#7B3FE4</color>
+    <color name="color_primary_dark">#6A2FD0</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#9999BB</color>
+    <color name="text_hint_color">#666688</color>
+    <color name="color_border">#3A3A58</color>
+    <color name="step_inactive">#3A3A58</color>
+    <color name="divider_color">#3A3A58</color>
+
+    <!-- 메인 화면 추가 색상 -->
+    <color name="color_lime">#D4FF00</color>
+    <color name="color_lime_text">#13131F</color>
+    <color name="color_sidebar">#0D0D18</color>
+    <color name="color_card">#1E1E30</color>
+    <color name="color_urgent">#FF6B35</color>
+    <color name="color_complete">#2ECC71</color>
+    <color name="color_in_progress">#7B3FE4</color>
+    <color name="color_pending">#4A4A6A</color>
 </resources>
