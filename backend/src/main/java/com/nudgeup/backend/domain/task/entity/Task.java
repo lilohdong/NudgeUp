@@ -2,15 +2,11 @@ package com.nudgeup.backend.domain.task.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-// TODO: tasks 테이블과 매핑되는 JPA 엔티티
-// DB 컬럼: id, team_id, title, description, assignee_id, created_by_id, status, due_date, started_at, completed_at, created_at
-// - assigneeId: 작업 담당자 (nullable - 미지정 시 생성자 본인)
-// - createdById: 작업 생성자
-// - changeStatus(): 상태 변경 메서드 (PENDING→IN_PROGRESS 시 startedAt, IN_PROGRESS→COMPLETED 시 completedAt 자동 기록)
 @Entity
 @Table(name = "tasks")
 @Getter
@@ -49,18 +45,28 @@ public class Task {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    // TODO: @CreationTimestamp LocalDateTime createdAt 추가
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     @Builder
     public Task(Long teamId, String title, String description,
                 Long assigneeId, Long createdById, LocalDate dueDate) {
-        // TODO: 구현, status 기본값 = PENDING
+        this.teamId = teamId;
+        this.title = title;
+        this.description = description;
+        this.assigneeId = assigneeId;
+        this.createdById = createdById;
+        this.dueDate = dueDate;
+        this.status = TaskStatus.PENDING;
     }
 
     public void changeStatus(TaskStatus newStatus) {
-        // TODO: 구현
-        // PENDING → IN_PROGRESS: this.startedAt = LocalDateTime.now()
-        // IN_PROGRESS → COMPLETED: this.completedAt = LocalDateTime.now()
+        if (newStatus == TaskStatus.IN_PROGRESS) {
+            this.startedAt = LocalDateTime.now();
+        } else if (newStatus == TaskStatus.COMPLETED) {
+            this.completedAt = LocalDateTime.now();
+        }
         this.status = newStatus;
     }
 }
