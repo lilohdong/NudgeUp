@@ -11,7 +11,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.lifecycle.ViewModelProvider;
+import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
 import com.nudgeup.app.ui.main.MainActivity;
 
@@ -24,7 +26,18 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 스플래시 설치 — super.onCreate() 이전 호출 필수
+        SplashScreen.installSplashScreen(this);
+
         super.onCreate(savedInstanceState);
+
+        // 이미 로그인된 경우 메인으로 이동
+        if (NudgeUpApplication.getTokenManager().isLoggedIn()) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
