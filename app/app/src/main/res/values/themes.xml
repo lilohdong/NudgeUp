@@ -3,17 +3,11 @@
     <style name="Base.Theme.NudgeUp" parent="Theme.Material3.DayNight.NoActionBar">
     </style>
 
-    <style name="Theme.NudgeUp" parent="Base.Theme.NudgeUp" />
-
-    <!-- Splash screen theme — LoginActivity에만 적용 -->
-    <style name="Theme.NudgeUp.Splash" parent="Theme.SplashScreen">
-        <!-- 스플래시 배경색: 앱 다크 배경 -->
-        <item name="windowSplashScreenBackground">@color/bg_dark</item>
-        <!-- 스플래시 아이콘: 원형 마스크 안전 영역(160dp) 내 표시 -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
-        <!-- 아이콘 뒤 배경(API 31+에서 원형 영역): 배경과 동일하게 -->
-        <item name="windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
-        <!-- 스플래시 이후 적용할 앱 테마 -->
-        <item name="postSplashScreenTheme">@style/Theme.NudgeUp</item>
+    <style name="Theme.NudgeUp" parent="Base.Theme.NudgeUp">
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <!-- API 31+ 시스템 스플래시 화면 설정 (pre-31에서는 무시됨) -->
+        <item name="android:windowSplashScreenBackground">@color/bg_dark</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
     </style>
 </resources>
