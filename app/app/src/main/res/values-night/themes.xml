@@ -1,7 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme (dark). -->
     <style name="Base.Theme.NudgeUp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    </style>
+
+    <!-- Splash screen theme (dark mode) — LoginActivity에만 적용 -->
+    <style name="Theme.NudgeUp.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/bg_dark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/nudge_up_logo</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
+        <item name="postSplashScreenTheme">@style/Theme.NudgeUp</item>
     </style>
 </resources>

@@ -1,9 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.NudgeUp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
     <style name="Theme.NudgeUp" parent="Base.Theme.NudgeUp" />
+
+    <!-- Splash screen theme — LoginActivity에만 적용 -->
+    <style name="Theme.NudgeUp.Splash" parent="Theme.SplashScreen">
+        <!-- 스플래시 배경색: 앱 다크 배경 -->
+        <item name="windowSplashScreenBackground">@color/bg_dark</item>
+        <!-- 스플래시 아이콘: 기존 로고 -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/nudge_up_logo</item>
+        <!-- 아이콘 뒤 배경(API 31+에서 원형 영역): 배경과 동일하게 -->
+        <item name="windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
+        <!-- 스플래시 이후 적용할 앱 테마 -->
+        <item name="postSplashScreenTheme">@style/Theme.NudgeUp</item>
+    </style>
 </resources>
