@@ -1,5 +1,7 @@
 package com.nudgeup.backend.domain.task.entity;
 
+import com.nudgeup.backend.global.exception.CustomException;
+import com.nudgeup.backend.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -62,6 +64,9 @@ public class Task {
     }
 
     public void changeStatus(TaskStatus newStatus) {
+        if (this.status == TaskStatus.COMPLETED) {
+            throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
+        }
         if (newStatus == TaskStatus.IN_PROGRESS) {
             this.startedAt = LocalDateTime.now();
         } else if (newStatus == TaskStatus.COMPLETED) {
