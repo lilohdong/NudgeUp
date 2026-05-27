@@ -9,8 +9,8 @@
     <style name="Theme.NudgeUp.Splash" parent="Theme.SplashScreen">
         <!-- 스플래시 배경색: 앱 다크 배경 -->
         <item name="windowSplashScreenBackground">@color/bg_dark</item>
-        <!-- 스플래시 아이콘: 기존 로고 -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/nudge_up_logo</item>
+        <!-- 스플래시 아이콘: 원형 마스크 안전 영역(160dp) 내 표시 -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <!-- 아이콘 뒤 배경(API 31+에서 원형 영역): 배경과 동일하게 -->
         <item name="windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
         <!-- 스플래시 이후 적용할 앱 테마 -->

@@ -6,7 +6,7 @@
     <!-- Splash screen theme (dark mode) — LoginActivity에만 적용 -->
     <style name="Theme.NudgeUp.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/bg_dark</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/nudge_up_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="windowSplashScreenIconBackgroundColor">@color/bg_dark</item>
         <item name="postSplashScreenTheme">@style/Theme.NudgeUp</item>
     </style>
