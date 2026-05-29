@@ -89,8 +89,8 @@ public class RegisterActivity extends AppCompatActivity {
 
         viewModel.getRegisterResult().observe(this, result -> {
             if (result.isSuccess()) {
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
+                Toast.makeText(this, "회원가입이 완료됐습니다. 로그인해주세요.", Toast.LENGTH_SHORT).show();
+                finish(); // LoginActivity로 복귀 (백스택에 있음)
             } else {
                 Toast.makeText(this, result.getMessage(), Toast.LENGTH_SHORT).show();
             }

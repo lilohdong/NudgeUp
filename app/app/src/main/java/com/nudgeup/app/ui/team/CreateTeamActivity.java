@@ -101,8 +101,10 @@ public class CreateTeamActivity extends AppCompatActivity {
             }
         });
 
-        viewModel.getNetworkError().observe(this, error ->
-                Toast.makeText(this, error, Toast.LENGTH_SHORT).show());
+        viewModel.getNetworkError().observe(this, error -> {
+            Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+            btnCreate.setEnabled(true);
+        });
 
         btnCreate.setOnClickListener(v -> {
             String name = etTeamName.getText().toString().trim();
