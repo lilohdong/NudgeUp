@@ -8,8 +8,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-    // 에뮬레이터에서 호스트 PC localhost를 가리키는 주소
-    private static final String BASE_URL = "http://10.0.2.2:8080/api/v1/";
+    // 에뮬레이터: 10.0.2.2 (호스트 PC localhost)
+    // 실기기:    PC의 LAN IP로 변경 (예: 192.168.0.10)
+    //            → ipconfig(Windows) 또는 ifconfig(Mac/Linux) 로 확인
+    private static final String BASE_URL = BuildConfig.BASE_URL;
     private static Retrofit instance;
 
     public static synchronized Retrofit getInstance() {

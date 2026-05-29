@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        개발 서버 HTTP 허용 (Android 9+에서 기본 차단되는 cleartext 트래픽을 명시적으로 허용)
+        - 에뮬레이터: 10.0.2.2 (호스트 PC localhost)
+        - 실기기:    BASE_URL을 PC의 LAN IP로 변경한 뒤 해당 IP도 아래에 추가
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
