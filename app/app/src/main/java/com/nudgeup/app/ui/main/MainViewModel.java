@@ -32,6 +32,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<TeamResponse> currentTeam = new MutableLiveData<>();
     private final MutableLiveData<Boolean> nudgeResult = new MutableLiveData<>();
     private final MutableLiveData<Integer> nudgeCount = new MutableLiveData<>(0);
+    private final MutableLiveData<String> networkError = new MutableLiveData<>();
 
     private List<TaskResponse> allTasksCache = new ArrayList<>();
     private long selectedMemberId = -1L;
@@ -48,6 +49,7 @@ public class MainViewModel extends ViewModel {
     public LiveData<TeamResponse> getCurrentTeam() { return currentTeam; }
     public LiveData<Boolean> getNudgeResult() { return nudgeResult; }
     public LiveData<Integer> getNudgeCount() { return nudgeCount; }
+    public LiveData<String> getNetworkError() { return networkError; }
 
     public void setTeamTasksSortMode(SortMode mode) {
         teamTasksSortMode = mode;
@@ -73,7 +75,9 @@ public class MainViewModel extends ViewModel {
                 }
             }
             @Override
-            public void onFailure(Call<ApiResponse<List<TeamResponse>>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<List<TeamResponse>>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
         });
     }
 
@@ -103,7 +107,9 @@ public class MainViewModel extends ViewModel {
                 }
             }
             @Override
-            public void onFailure(Call<ApiResponse<List<TaskResponse>>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<List<TaskResponse>>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
         });
 
         loadMyTasks();
@@ -121,7 +127,9 @@ public class MainViewModel extends ViewModel {
                 }
             }
             @Override
-            public void onFailure(Call<ApiResponse<List<TaskResponse>>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<List<TaskResponse>>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
         });
     }
 
@@ -138,7 +146,9 @@ public class MainViewModel extends ViewModel {
                 }
             }
             @Override
-            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
         });
     }
 
@@ -194,7 +204,9 @@ public class MainViewModel extends ViewModel {
                 }
             }
             @Override
-            public void onFailure(Call<ApiResponse<TaskResponse>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<TaskResponse>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
         });
     }
 
