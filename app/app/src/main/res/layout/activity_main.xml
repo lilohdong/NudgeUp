@@ -184,6 +184,13 @@
                             android:textSize="12sp"
                             android:textColor="@color/text_secondary"/>
 
+                        <Spinner
+                            android:id="@+id/spinner_team_tasks_sort"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:minWidth="100dp" />
+
                     </LinearLayout>
 
                     <View
@@ -233,6 +240,13 @@
                             android:text="0건"
                             android:textSize="12sp"
                             android:textColor="@color/text_secondary"/>
+
+                        <Spinner
+                            android:id="@+id/spinner_my_tasks_sort"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:minWidth="100dp" />
 
                     </LinearLayout>
 

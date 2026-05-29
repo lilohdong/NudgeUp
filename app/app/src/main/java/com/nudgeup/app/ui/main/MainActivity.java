@@ -3,7 +3,10 @@ package com.nudgeup.app.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         TextView tvMyTaskCount = findViewById(R.id.tv_my_task_count);
         TextView tvNudgeCount = findViewById(R.id.tv_nudge_count);
         View btnNewTask = findViewById(R.id.btn_new_task);
+        Spinner spinnerTeamTasksSort = findViewById(R.id.spinner_team_tasks_sort);
+        Spinner spinnerMyTasksSort = findViewById(R.id.spinner_my_tasks_sort);
 
         // 팀원 필터 RecyclerView (가로)
         LinearLayoutManager filterLm = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -90,6 +95,31 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("teamId", viewModel.getCurrentTeam().getValue().getId());
             }
             startActivity(intent);
+        });
+
+        // 정렬 Spinner 설정
+        ArrayAdapter<CharSequence> sortAdapter = ArrayAdapter.createFromResource(
+                this, R.array.sort_options, android.R.layout.simple_spinner_item);
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinnerTeamTasksSort.setAdapter(sortAdapter);
+        spinnerTeamTasksSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                viewModel.setTeamTasksSortMode(indexToSortMode(position));
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        spinnerMyTasksSort.setAdapter(sortAdapter);
+        spinnerMyTasksSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                viewModel.setMyTasksSortMode(indexToSortMode(position));
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         // 관찰자 등록
@@ -145,6 +175,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.loadTeams();
+    }
+
+    private MainViewModel.SortMode indexToSortMode(int position) {
+        switch (position) {
+            case 1: return MainViewModel.SortMode.BY_PERSON;
+            case 2: return MainViewModel.SortMode.BY_DEADLINE;
+            default: return MainViewModel.SortMode.DEFAULT;
+        }
     }
 
     @Override
