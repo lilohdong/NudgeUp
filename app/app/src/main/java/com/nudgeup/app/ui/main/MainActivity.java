@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         View layoutMainContent  = findViewById(R.id.layout_main_content);
         View layoutEmptyState   = findViewById(R.id.layout_empty_state);
         View btnCreateTeamEmpty = findViewById(R.id.btn_create_team_empty);
-        android.widget.TextView btnJoinTeamEmpty = (android.widget.TextView) findViewById(R.id.btn_join_team_empty);
+        TextView btnJoinTeamEmpty = findViewById(R.id.btn_join_team_empty);
         Spinner spinnerTeamTasksSort = findViewById(R.id.spinner_team_tasks_sort);
         Spinner spinnerMyTasksSort = findViewById(R.id.spinner_my_tasks_sort);
 
@@ -122,7 +122,10 @@ public class MainActivity extends AppCompatActivity {
                     .setView(etCode)
                     .setPositiveButton("참가", (dialog, which) -> {
                         String code = etCode.getText().toString().trim();
-                        if (!code.isEmpty()) viewModel.joinTeam(code);
+                        if (!code.isEmpty()) {
+                            ((android.app.AlertDialog) dialog).getButton(android.content.DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+                            viewModel.joinTeam(code);
+                        }
                     })
                     .setNegativeButton("취소", null)
                     .show();
@@ -222,7 +225,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this,
                         success ? "팀에 참가했습니다!" : "유효하지 않은 초대 코드입니다.",
                         Toast.LENGTH_SHORT).show();
+                viewModel.resetJoinResult();
             }
+        });
+
+        viewModel.getNetworkError().observe(this, error -> {
+            if (error != null) Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
         });
 
         viewModel.loadTeams();

@@ -1,5 +1,6 @@
 package com.nudgeup.app.ui.main.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -114,17 +115,18 @@ public class ProfileDialog extends DialogFragment {
         refreshNameDisplay();
 
         // ── 서버에서 최신 이름 로드 ──
+        Activity activity = getActivity();
         userRepository.getMe().enqueue(new Callback<ApiResponse<UserResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<UserResponse>> call,
                                    Response<ApiResponse<UserResponse>> response) {
-                if (!isAdded()) return;
+                if (activity == null || activity.isFinishing()) return;
                 if (response.isSuccessful() && response.body() != null
                         && response.body().isSuccess()) {
                     UserResponse user = response.body().getData();
                     if (user != null && user.getUsername() != null) {
                         currentName = user.getUsername();
-                        requireActivity().runOnUiThread(ProfileDialog.this::refreshNameDisplay);
+                        activity.runOnUiThread(ProfileDialog.this::refreshNameDisplay);
                     }
                 }
             }
@@ -158,11 +160,13 @@ public class ProfileDialog extends DialogFragment {
                         "이름은 일주일에 한 번만 변경 가능합니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            userRepository.updateProfile(newName).enqueue(new Callback<ApiResponse<UserResponse>>() {
+            String colorHex = String.format("#%06X", (0xFFFFFF & selectedColor));
+            Activity saveActivity = getActivity();
+            userRepository.updateProfile(newName, colorHex).enqueue(new Callback<ApiResponse<UserResponse>>() {
                 @Override
                 public void onResponse(Call<ApiResponse<UserResponse>> call,
                                        Response<ApiResponse<UserResponse>> response) {
-                    if (!isAdded()) return;
+                    if (saveActivity == null || saveActivity.isFinishing()) return;
                     if (response.isSuccessful() && response.body() != null
                             && response.body().isSuccess()) {
                         currentName = newName;
@@ -172,23 +176,23 @@ public class ProfileDialog extends DialogFragment {
                                 .putLong(KEY_LAST_NAME_CHANGE_MS, System.currentTimeMillis())
                                 .apply();
                         NudgeUpApplication.getTokenManager().saveUsername(currentName);
-                        requireActivity().runOnUiThread(() -> {
+                        saveActivity.runOnUiThread(() -> {
                             refreshNameDisplay();
                             exitEditMode();
-                            Toast.makeText(requireContext(),
+                            Toast.makeText(saveActivity,
                                     "프로필이 저장됐습니다 ✓", Toast.LENGTH_SHORT).show();
                         });
                     } else {
-                        requireActivity().runOnUiThread(() ->
-                                Toast.makeText(requireContext(),
+                        saveActivity.runOnUiThread(() ->
+                                Toast.makeText(saveActivity,
                                         "저장에 실패했습니다.", Toast.LENGTH_SHORT).show());
                     }
                 }
                 @Override
                 public void onFailure(Call<ApiResponse<UserResponse>> call, Throwable t) {
-                    if (!isAdded()) return;
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(requireContext(),
+                    if (saveActivity == null || saveActivity.isFinishing()) return;
+                    saveActivity.runOnUiThread(() ->
+                            Toast.makeText(saveActivity,
                                     "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show());
                 }
             });

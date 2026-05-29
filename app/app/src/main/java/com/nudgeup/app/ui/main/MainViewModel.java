@@ -50,6 +50,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<String> networkError = new MutableLiveData<>();
     private final MutableLiveData<Boolean> joinResult = new MutableLiveData<>();
     public LiveData<Boolean> getJoinResult() { return joinResult; }
+    public void resetJoinResult() { joinResult.setValue(null); }
 
     private List<TaskResponse> allTasksCache = new ArrayList<>();
     private long selectedMemberId = -1L;
@@ -328,7 +329,6 @@ public class MainViewModel extends ViewModel {
             @Override
             public void onFailure(Call<ApiResponse<TeamResponse>> call, Throwable t) {
                 networkError.setValue("네트워크 오류가 발생했습니다.");
-                joinResult.setValue(false);
             }
         });
     }

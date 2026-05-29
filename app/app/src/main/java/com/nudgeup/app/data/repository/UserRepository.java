@@ -24,7 +24,7 @@ public class UserRepository {
         return userApi.registerFcmToken(new FcmTokenRequest(token));
     }
 
-    public Call<ApiResponse<UserResponse>> updateProfile(String username) {
-        return userApi.updateProfile(new UpdateUserRequest(username));
+    public Call<ApiResponse<UserResponse>> updateProfile(String username, String color) {
+        return userApi.updateProfile(new UpdateUserRequest(username, color));
     }
 }
