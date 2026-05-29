@@ -14,6 +14,7 @@ public class TokenManager {
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
     private static final String KEY_USER_ID = "user_id";
+    private static final String KEY_USERNAME = "username";
 
     private static TokenManager instance;
     private final SharedPreferences prefs;
@@ -56,9 +57,14 @@ public class TokenManager {
         prefs.edit().putLong(KEY_USER_ID, userId).apply();
     }
 
+    public void saveUsername(String username) {
+        prefs.edit().putString(KEY_USERNAME, username).apply();
+    }
+
     public String getAccessToken() { return prefs.getString(KEY_ACCESS_TOKEN, null); }
     public String getRefreshToken() { return prefs.getString(KEY_REFRESH_TOKEN, null); }
     public long getUserId() { return prefs.getLong(KEY_USER_ID, -1); }
+    public String getUsername() { return prefs.getString(KEY_USERNAME, null); }
 
     public boolean isLoggedIn() { return getAccessToken() != null; }
 

@@ -43,6 +43,7 @@ public class LoginViewModel extends ViewModel {
                     authRepository.saveTokens(data.getAccessToken(), data.getRefreshToken());
                     if (data.getUser() != null) {
                         authRepository.saveUserId(data.getUser().getId());
+                        authRepository.saveUsername(data.getUser().getName());
                     }
                     loginResult.setValue(UiResult.success());
                 } else {

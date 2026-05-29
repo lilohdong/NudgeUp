@@ -40,6 +40,10 @@ public class AuthRepository {
         tokenManager.saveUserId(userId);
     }
 
+    public void saveUsername(String username) {
+        tokenManager.saveUsername(username);
+    }
+
     public void clearTokens() {
         tokenManager.clearTokens();
     }
