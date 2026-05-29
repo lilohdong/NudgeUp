@@ -2,6 +2,7 @@ package com.nudgeup.app.data.repository;
 
 import com.nudgeup.app.data.api.TeamApi;
 import com.nudgeup.app.data.dto.request.CreateTeamRequest;
+import com.nudgeup.app.data.dto.request.JoinTeamRequest;
 import com.nudgeup.app.data.dto.request.TeamSettingsRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.TeamDetailResponse;
@@ -32,5 +33,9 @@ public class TeamRepository {
 
     public Call<ApiResponse<Void>> updateSettings(long teamId, TeamSettingsRequest request) {
         return teamApi.updateSettings(teamId, request);
+    }
+
+    public Call<ApiResponse<TeamResponse>> joinTeam(String inviteCode) {
+        return teamApi.joinTeam(new JoinTeamRequest(inviteCode));
     }
 }
