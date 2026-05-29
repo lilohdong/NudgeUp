@@ -1,5 +1,6 @@
 package com.nudgeup.app.ui.main;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -59,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
         TextView tvMyTaskCount = findViewById(R.id.tv_my_task_count);
         TextView tvNudgeCount = findViewById(R.id.tv_nudge_count);
         View btnNewTask = findViewById(R.id.btn_new_task);
+        View layoutMainContent  = findViewById(R.id.layout_main_content);
+        View layoutEmptyState   = findViewById(R.id.layout_empty_state);
+        View btnCreateTeamEmpty = findViewById(R.id.btn_create_team_empty);
+        android.widget.TextView btnJoinTeamEmpty = (android.widget.TextView) findViewById(R.id.btn_join_team_empty);
         Spinner spinnerTeamTasksSort = findViewById(R.id.spinner_team_tasks_sort);
         Spinner spinnerMyTasksSort = findViewById(R.id.spinner_my_tasks_sort);
 
@@ -103,6 +108,26 @@ public class MainActivity extends AppCompatActivity {
         btnAddTeam.setOnClickListener(v ->
                 createTeamLauncher.launch(new Intent(this, CreateTeamActivity.class)));
 
+        btnCreateTeamEmpty.setOnClickListener(v ->
+                createTeamLauncher.launch(new Intent(this, CreateTeamActivity.class)));
+
+        btnJoinTeamEmpty.setOnClickListener(v -> {
+            android.widget.EditText etCode = new android.widget.EditText(this);
+            etCode.setHint("초대 코드를 입력하세요");
+            etCode.setSingleLine(true);
+            int p = (int)(16 * getResources().getDisplayMetrics().density);
+            etCode.setPadding(p, p, p, p);
+            new AlertDialog.Builder(this)
+                    .setTitle("팀 참가")
+                    .setView(etCode)
+                    .setPositiveButton("참가", (dialog, which) -> {
+                        String code = etCode.getText().toString().trim();
+                        if (!code.isEmpty()) viewModel.joinTeam(code);
+                    })
+                    .setNegativeButton("취소", null)
+                    .show();
+        });
+
         btnMy.setOnClickListener(v -> {
             boolean isLeader = viewModel.isCurrentUserLeader();
             ProfileDialog.newInstance(isLeader).show(getSupportFragmentManager(), "profile");
@@ -144,10 +169,15 @@ public class MainActivity extends AppCompatActivity {
         // 관찰자 등록
 
         viewModel.getTeams().observe(this, teams -> {
-            // 팀 탭 재생성
+            boolean isEmpty = teams == null || teams.isEmpty();
+            layoutMainContent.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+
             long selectedId = viewModel.getCurrentTeam().getValue() != null
                     ? viewModel.getCurrentTeam().getValue().getId() : -1L;
-            teamTabAdapter = new TeamTabAdapter(teams, team -> viewModel.selectTeam(team.getId()));
+            java.util.List<com.nudgeup.app.data.dto.response.TeamResponse> safeTeams =
+                    teams != null ? teams : new java.util.ArrayList<>();
+            teamTabAdapter = new TeamTabAdapter(safeTeams, team -> viewModel.selectTeam(team.getId()));
             teamTabAdapter.setSelectedTeamId(selectedId);
             teamTabAdapter.addTabsTo(sidebarTeamContainer);
         });
@@ -184,6 +214,14 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getNudgeResult().observe(this, success -> {
             if (success != null) {
                 Toast.makeText(this, success ? "독촉 알림을 보냈습니다." : "알림 전송에 실패했습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getJoinResult().observe(this, success -> {
+            if (success != null) {
+                Toast.makeText(this,
+                        success ? "팀에 참가했습니다!" : "유효하지 않은 초대 코드입니다.",
+                        Toast.LENGTH_SHORT).show();
             }
         });
 
