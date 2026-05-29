@@ -3,6 +3,8 @@ package com.nudgeup.app.data.dto.response;
 import com.google.gson.annotations.SerializedName;
 
 public class UserResponse {
+    public UserResponse() {}
+
     @SerializedName("userId")
     private long id;
     @SerializedName("username")

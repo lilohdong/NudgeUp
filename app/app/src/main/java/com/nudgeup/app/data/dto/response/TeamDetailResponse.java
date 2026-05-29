@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class TeamDetailResponse {
+    public TeamDetailResponse() {}
+
     @SerializedName("teamId")
     private long id;
     @SerializedName("teamName")
