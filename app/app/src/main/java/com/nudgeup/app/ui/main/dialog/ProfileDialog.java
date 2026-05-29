@@ -22,7 +22,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
+import com.nudgeup.app.data.dto.response.ApiResponse;
+import com.nudgeup.app.data.dto.response.UserResponse;
+import com.nudgeup.app.data.repository.UserRepository;
 import com.nudgeup.app.ui.auth.LoginActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProfileDialog extends DialogFragment {
 
@@ -32,6 +38,8 @@ public class ProfileDialog extends DialogFragment {
     private static final String KEY_NAME    = "profile_name";
     private static final String KEY_COLOR   = "profile_avatar_color";
     private static final int    DEFAULT_COLOR = 0xFFD4FF00; // 시그니처 라임
+    private static final String KEY_LAST_NAME_CHANGE_MS = "last_name_change_ms";
+    private static final long   SEVEN_DAYS_MS = 7L * 24 * 60 * 60 * 1000;
 
     public static ProfileDialog newInstance(boolean isLeader) {
         ProfileDialog dialog = new ProfileDialog();
@@ -67,6 +75,7 @@ public class ProfileDialog extends DialogFragment {
     private LinearLayout layoutEditMode;
     private FrameLayout  flAvatarEditBadge;
     private ImageButton  btnEditProfile;
+    private com.nudgeup.app.data.repository.UserRepository userRepository;
 
     @Nullable
     @Override
@@ -77,6 +86,7 @@ public class ProfileDialog extends DialogFragment {
         // ── SharedPreferences 로드 ──
         SharedPreferences prefs = requireContext()
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        userRepository = new UserRepository();
         String savedName = prefs.getString(KEY_NAME, null);
         if (savedName != null) {
             currentName = savedName;
@@ -103,6 +113,27 @@ public class ProfileDialog extends DialogFragment {
         applyAvatarColor(selectedColor);
         refreshNameDisplay();
 
+        // ── 서버에서 최신 이름 로드 ──
+        userRepository.getMe().enqueue(new Callback<ApiResponse<UserResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<UserResponse>> call,
+                                   Response<ApiResponse<UserResponse>> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful() && response.body() != null
+                        && response.body().isSuccess()) {
+                    UserResponse user = response.body().getData();
+                    if (user != null && user.getUsername() != null) {
+                        currentName = user.getUsername();
+                        requireActivity().runOnUiThread(ProfileDialog.this::refreshNameDisplay);
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<ApiResponse<UserResponse>> call, Throwable t) {
+                // 로컬 캐시 이름 유지
+            }
+        });
+
         // ── 편집 버튼 (연필 ↔ X 토글) ──
         btnEditProfile.setOnClickListener(v -> toggleEditMode(prefs));
 
@@ -121,14 +152,46 @@ public class ProfileDialog extends DialogFragment {
                 etDisplayName.setError("이름을 입력하세요");
                 return;
             }
-            currentName = newName;
-            prefs.edit()
-                    .putString(KEY_NAME, currentName)
-                    .putInt(KEY_COLOR, selectedColor)
-                    .apply();
-            refreshNameDisplay();
-            exitEditMode();
-            Toast.makeText(requireContext(), "프로필이 저장됐습니다 ✓", Toast.LENGTH_SHORT).show();
+            long lastChangedMs = prefs.getLong(KEY_LAST_NAME_CHANGE_MS, 0L);
+            if (System.currentTimeMillis() - lastChangedMs < SEVEN_DAYS_MS) {
+                Toast.makeText(requireContext(),
+                        "이름은 일주일에 한 번만 변경 가능합니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            userRepository.updateProfile(newName).enqueue(new Callback<ApiResponse<UserResponse>>() {
+                @Override
+                public void onResponse(Call<ApiResponse<UserResponse>> call,
+                                       Response<ApiResponse<UserResponse>> response) {
+                    if (!isAdded()) return;
+                    if (response.isSuccessful() && response.body() != null
+                            && response.body().isSuccess()) {
+                        currentName = newName;
+                        prefs.edit()
+                                .putString(KEY_NAME, currentName)
+                                .putInt(KEY_COLOR, selectedColor)
+                                .putLong(KEY_LAST_NAME_CHANGE_MS, System.currentTimeMillis())
+                                .apply();
+                        NudgeUpApplication.getTokenManager().saveUsername(currentName);
+                        requireActivity().runOnUiThread(() -> {
+                            refreshNameDisplay();
+                            exitEditMode();
+                            Toast.makeText(requireContext(),
+                                    "프로필이 저장됐습니다 ✓", Toast.LENGTH_SHORT).show();
+                        });
+                    } else {
+                        requireActivity().runOnUiThread(() ->
+                                Toast.makeText(requireContext(),
+                                        "저장에 실패했습니다.", Toast.LENGTH_SHORT).show());
+                    }
+                }
+                @Override
+                public void onFailure(Call<ApiResponse<UserResponse>> call, Throwable t) {
+                    if (!isAdded()) return;
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(),
+                                    "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show());
+                }
+            });
         });
 
         // ── 로그아웃 ──
