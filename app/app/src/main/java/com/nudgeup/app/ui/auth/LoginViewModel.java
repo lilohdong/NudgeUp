@@ -23,12 +23,6 @@ public class LoginViewModel extends ViewModel {
     public LiveData<UiResult> getLoginResult() { return loginResult; }
 
     public void login(String email, String password) {
-        // TODO: 백엔드 연결 후 아래 목업 블록 제거하고 주석 해제
-        // --- 목업 시작 ---
-        loginResult.setValue(UiResult.success());
-        // --- 목업 끝 ---
-
-        /*
         authRepository.login(email, password).enqueue(new Callback<ApiResponse<AuthResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> response) {
@@ -49,7 +43,6 @@ public class LoginViewModel extends ViewModel {
                 loginResult.setValue(UiResult.fail("네트워크 오류가 발생했습니다."));
             }
         });
-        */
     }
 
     public static class UiResult {
