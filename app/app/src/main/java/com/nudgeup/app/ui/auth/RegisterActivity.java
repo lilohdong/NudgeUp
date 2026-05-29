@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
 import com.nudgeup.app.ui.main.MainActivity;
 
@@ -26,7 +27,8 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+        viewModel = new ViewModelProvider(this, new RegisterViewModel.Factory(NudgeUpApplication.getTokenManager()))
+                .get(RegisterViewModel.class);
 
         etId = findViewById(R.id.et_id);
         etEmail = findViewById(R.id.et_email);

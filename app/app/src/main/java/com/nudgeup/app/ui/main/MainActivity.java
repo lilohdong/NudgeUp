@@ -3,7 +3,10 @@ package com.nudgeup.app.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        viewModel = new ViewModelProvider(this, new MainViewModel.Factory()).get(MainViewModel.class);
 
         // View 참조
         LinearLayout sidebarTeamContainer = findViewById(R.id.sidebar_team_container);
@@ -47,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         TextView tvMyTaskCount = findViewById(R.id.tv_my_task_count);
         TextView tvNudgeCount = findViewById(R.id.tv_nudge_count);
         View btnNewTask = findViewById(R.id.btn_new_task);
+        Spinner spinnerTeamTasksSort = findViewById(R.id.spinner_team_tasks_sort);
+        Spinner spinnerMyTasksSort = findViewById(R.id.spinner_my_tasks_sort);
 
         // 팀원 필터 RecyclerView (가로)
         LinearLayoutManager filterLm = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -77,6 +82,14 @@ public class MainActivity extends AppCompatActivity {
         );
         rvMyTasks.setAdapter(myTaskAdapter);
 
+        // 팀 설정 (getCurrentTeam이 갱신될 때마다 teamId를 읽어옴)
+        btnTeamSettings.setOnClickListener(v -> {
+            if (viewModel.getCurrentTeam().getValue() == null) return;
+            Intent intent = new Intent(this, TeamSettingsActivity.class);
+            intent.putExtra("teamId", viewModel.getCurrentTeam().getValue().getId());
+            startActivity(intent);
+        });
+
         // 버튼 이벤트
         btnAddTeam.setOnClickListener(v ->
                 startActivity(new Intent(this, CreateTeamActivity.class)));
@@ -90,6 +103,31 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("teamId", viewModel.getCurrentTeam().getValue().getId());
             }
             startActivity(intent);
+        });
+
+        // 정렬 Spinner 설정
+        ArrayAdapter<CharSequence> sortAdapter = ArrayAdapter.createFromResource(
+                this, R.array.sort_options, android.R.layout.simple_spinner_item);
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinnerTeamTasksSort.setAdapter(sortAdapter);
+        spinnerTeamTasksSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                viewModel.setTeamTasksSortMode(indexToSortMode(position));
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        spinnerMyTasksSort.setAdapter(sortAdapter);
+        spinnerMyTasksSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                viewModel.setMyTasksSortMode(indexToSortMode(position));
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         // 관찰자 등록
@@ -106,20 +144,13 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getCurrentTeam().observe(this, team -> {
             if (team == null) return;
             tvTeamName.setText(team.getName());
+            btnTeamSettings.setVisibility(View.VISIBLE);
 
             // 팀 탭 선택 표시 갱신
             if (teamTabAdapter != null) {
                 teamTabAdapter.setSelectedTeamId(team.getId());
                 teamTabAdapter.addTabsTo(sidebarTeamContainer);
             }
-
-            // 팀 설정 버튼 (항상 표시)
-            btnTeamSettings.setVisibility(View.VISIBLE);
-            btnTeamSettings.setOnClickListener(v -> {
-                Intent intent = new Intent(this, TeamSettingsActivity.class);
-                intent.putExtra("teamId", team.getId());
-                startActivity(intent);
-            });
         });
 
         viewModel.getMembers().observe(this, members ->
@@ -145,6 +176,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.loadTeams();
+    }
+
+    private MainViewModel.SortMode indexToSortMode(int position) {
+        switch (position) {
+            case 1: return MainViewModel.SortMode.BY_PERSON;
+            case 2: return MainViewModel.SortMode.BY_DEADLINE;
+            default: return MainViewModel.SortMode.DEFAULT;
+        }
     }
 
     @Override

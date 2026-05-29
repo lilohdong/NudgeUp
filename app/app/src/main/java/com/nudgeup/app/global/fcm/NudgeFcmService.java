@@ -8,8 +8,14 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
+import com.nudgeup.app.data.dto.response.ApiResponse;
+import com.nudgeup.app.data.repository.UserRepository;
 import com.nudgeup.app.ui.main.MainActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class NudgeFcmService extends FirebaseMessagingService {
 
@@ -27,7 +33,14 @@ public class NudgeFcmService extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(String token) {
-        // TODO: 서버에 갱신된 FCM 토큰 전송 (POST /users/fcm-token)
+        String accessToken = NudgeUpApplication.getTokenManager().getAccessToken();
+        if (accessToken == null) return;
+        new UserRepository().registerFcmToken(token).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {}
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {}
+        });
     }
 
     private void showNotification(String title, String body) {

@@ -3,9 +3,10 @@ package com.nudgeup.app.ui.auth;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import com.nudgeup.app.NudgeUpApplication;
+import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.AuthResponse;
+import com.nudgeup.app.data.local.TokenManager;
 import com.nudgeup.app.data.repository.AuthRepository;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -16,19 +17,24 @@ public class LoginViewModel extends ViewModel {
     private final AuthRepository authRepository;
     private final MutableLiveData<UiResult> loginResult = new MutableLiveData<>();
 
-    public LoginViewModel() {
-        authRepository = new AuthRepository(NudgeUpApplication.getTokenManager());
+    public LoginViewModel(AuthRepository authRepository) {
+        this.authRepository = authRepository;
+    }
+
+    public static class Factory implements ViewModelProvider.Factory {
+        private final TokenManager tokenManager;
+        public Factory(TokenManager tokenManager) { this.tokenManager = tokenManager; }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T extends ViewModel> T create(Class<T> modelClass) {
+            return (T) new LoginViewModel(new AuthRepository(tokenManager));
+        }
     }
 
     public LiveData<UiResult> getLoginResult() { return loginResult; }
 
     public void login(String email, String password) {
-        // TODO: 백엔드 연결 후 아래 목업 블록 제거하고 주석 해제
-        // --- 목업 시작 ---
-        loginResult.setValue(UiResult.success());
-        // --- 목업 끝 ---
-
-        /*
         authRepository.login(email, password).enqueue(new Callback<ApiResponse<AuthResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> response) {
@@ -49,7 +55,6 @@ public class LoginViewModel extends ViewModel {
                 loginResult.setValue(UiResult.fail("네트워크 오류가 발생했습니다."));
             }
         });
-        */
     }
 
     public static class UiResult {

@@ -13,7 +13,7 @@ public class NudgeRepository {
         this.nudgeApi = ApiClient.getInstance().create(NudgeApi.class);
     }
 
-    public Call<ApiResponse<Void>> sendNudge(long taskId) {
-        return nudgeApi.sendNudge(taskId);
+    public Call<ApiResponse<Void>> sendNudge(long teamId, long taskId) {
+        return nudgeApi.sendNudge(teamId, taskId);
     }
 }

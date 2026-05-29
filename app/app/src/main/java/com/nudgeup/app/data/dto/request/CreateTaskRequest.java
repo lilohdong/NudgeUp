@@ -2,14 +2,14 @@ package com.nudgeup.app.data.dto.request;
 
 public class CreateTaskRequest {
     private String title;
-    private long assigneeId;
-    private long teamId;
+    private String description;
+    private Long assigneeId;
     private String dueDate;
 
-    public CreateTaskRequest(String title, long assigneeId, long teamId, String dueDate) {
+    public CreateTaskRequest(String title, String description, Long assigneeId, String dueDate) {
         this.title = title;
+        this.description = description;
         this.assigneeId = assigneeId;
-        this.teamId = teamId;
         this.dueDate = dueDate;
     }
 }

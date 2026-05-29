@@ -1,8 +1,10 @@
 package com.nudgeup.app.data.dto.response;
 
+import com.google.gson.annotations.SerializedName;
 import com.nudgeup.app.domain.User;
 
 public class TaskResponse {
+    @SerializedName("taskId")
     private long id;
     private String title;
     private String status;

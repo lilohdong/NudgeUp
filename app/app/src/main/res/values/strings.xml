@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">NudgeUp</string>
+
+    <string-array name="sort_options">
+        <item>기본 정렬</item>
+        <item>담당자 순</item>
+        <item>마감일 순</item>
+    </string-array>
 </resources>

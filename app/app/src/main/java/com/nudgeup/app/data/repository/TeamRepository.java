@@ -4,7 +4,7 @@ import com.nudgeup.app.data.api.TeamApi;
 import com.nudgeup.app.data.dto.request.CreateTeamRequest;
 import com.nudgeup.app.data.dto.request.TeamSettingsRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
-import com.nudgeup.app.data.dto.response.MemberResponse;
+import com.nudgeup.app.data.dto.response.TeamDetailResponse;
 import com.nudgeup.app.data.dto.response.TeamResponse;
 import com.nudgeup.app.global.network.ApiClient;
 import java.util.List;
@@ -22,12 +22,12 @@ public class TeamRepository {
         return teamApi.getMyTeams();
     }
 
-    public Call<ApiResponse<TeamResponse>> createTeam(String name) {
+    public Call<ApiResponse<TeamDetailResponse>> createTeam(String name) {
         return teamApi.createTeam(new CreateTeamRequest(name));
     }
 
-    public Call<ApiResponse<List<MemberResponse>>> getMembers(long teamId) {
-        return teamApi.getMembers(teamId);
+    public Call<ApiResponse<TeamDetailResponse>> getTeamDetail(long teamId) {
+        return teamApi.getTeamDetail(teamId);
     }
 
     public Call<ApiResponse<Void>> updateSettings(long teamId, TeamSettingsRequest request) {

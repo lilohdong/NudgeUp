@@ -1,6 +1,7 @@
 package com.nudgeup.app.data.api;
 
 import com.nudgeup.app.data.dto.request.CreateTaskRequest;
+import com.nudgeup.app.data.dto.request.UpdateStatusRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.TaskResponse;
 import java.util.List;
@@ -10,16 +11,23 @@ import retrofit2.http.GET;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 public interface TaskApi {
 
-    @GET("tasks")
-    Call<ApiResponse<List<TaskResponse>>> getTasks(@Query("teamId") long teamId);
+    @GET("teams/{teamId}/tasks")
+    Call<ApiResponse<List<TaskResponse>>> getTasks(@Path("teamId") long teamId);
 
-    @POST("tasks")
-    Call<ApiResponse<TaskResponse>> createTask(@Body CreateTaskRequest request);
+    @GET("teams/{teamId}/tasks/my")
+    Call<ApiResponse<List<TaskResponse>>> getMyTasks(@Path("teamId") long teamId);
 
-    @PATCH("tasks/{taskId}/status")
-    Call<ApiResponse<TaskResponse>> updateStatus(@Path("taskId") long taskId, @Body String status);
+    @POST("teams/{teamId}/tasks")
+    Call<ApiResponse<TaskResponse>> createTask(
+            @Path("teamId") long teamId,
+            @Body CreateTaskRequest request);
+
+    @PATCH("teams/{teamId}/tasks/{taskId}/status")
+    Call<ApiResponse<TaskResponse>> updateStatus(
+            @Path("teamId") long teamId,
+            @Path("taskId") long taskId,
+            @Body UpdateStatusRequest request);
 }
