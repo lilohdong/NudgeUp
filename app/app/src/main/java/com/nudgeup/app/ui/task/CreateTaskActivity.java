@@ -105,7 +105,9 @@ public class CreateTaskActivity extends AppCompatActivity {
                 Toast.makeText(this, "작업 제목을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            viewModel.createTask(title, selectedAssigneeId, teamId, selectedDueDate);
+            String description = etDescription.getText().toString().trim();
+            Long assigneeId = selectedAssigneeId == -1 ? null : selectedAssigneeId;
+            viewModel.createTask(teamId, title, description.isEmpty() ? null : description, assigneeId, selectedDueDate);
         });
 
         // 임시 저장 (취소)
