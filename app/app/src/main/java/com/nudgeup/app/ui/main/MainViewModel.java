@@ -7,6 +7,7 @@ import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.MemberResponse;
 import com.nudgeup.app.data.dto.response.TaskResponse;
+import com.nudgeup.app.data.dto.response.TeamDetailResponse;
 import com.nudgeup.app.data.dto.response.TeamResponse;
 import com.nudgeup.app.data.repository.NudgeRepository;
 import com.nudgeup.app.data.repository.TaskRepository;
@@ -24,6 +25,8 @@ import retrofit2.Response;
 
 public class MainViewModel extends ViewModel {
 
+    public enum SortMode { DEFAULT, BY_PERSON, BY_DEADLINE }
+
     private final TeamRepository teamRepository = new TeamRepository();
     private final TaskRepository taskRepository = new TaskRepository();
     private final NudgeRepository nudgeRepository = new NudgeRepository();
@@ -35,6 +38,9 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<TeamResponse> currentTeam = new MutableLiveData<>();
     private final MutableLiveData<Boolean> nudgeResult = new MutableLiveData<>();
     private final MutableLiveData<Integer> nudgeCount = new MutableLiveData<>(0);
+
+    private SortMode teamTasksSortMode = SortMode.DEFAULT;
+    private SortMode myTasksSortMode = SortMode.DEFAULT;
 
     // 목업용: 현재 사용자 ID
     private static final long MOCK_MY_USER_ID = 1L;
@@ -50,6 +56,16 @@ public class MainViewModel extends ViewModel {
     public LiveData<TeamResponse> getCurrentTeam() { return currentTeam; }
     public LiveData<Boolean> getNudgeResult() { return nudgeResult; }
     public LiveData<Integer> getNudgeCount() { return nudgeCount; }
+
+    public void setTeamTasksSortMode(SortMode mode) {
+        teamTasksSortMode = mode;
+        applyFilter();
+    }
+
+    public void setMyTasksSortMode(SortMode mode) {
+        myTasksSortMode = mode;
+        applyFilter();
+    }
 
     public void loadTeams() {
         // TODO: 백엔드 연결 후 목업 제거
@@ -123,7 +139,7 @@ public class MainViewModel extends ViewModel {
                 }
             }
         }
-        teamTasks.setValue(sortTasks(filtered));
+        teamTasks.setValue(sortTasksStatic(filtered, teamTasksSortMode));
 
         // 내 할일: 항상 MOCK_MY_USER_ID 기준
         List<TaskResponse> mine = new ArrayList<>();
@@ -132,13 +148,68 @@ public class MainViewModel extends ViewModel {
                 mine.add(t);
             }
         }
-        myTasks.setValue(sortTasks(mine));
+        myTasks.setValue(sortTasksStatic(mine, myTasksSortMode));
     }
 
-    private List<TaskResponse> sortTasks(List<TaskResponse> list) {
+    static List<TaskResponse> sortTasksStatic(List<TaskResponse> list, SortMode mode) {
         List<TaskResponse> sorted = new ArrayList<>(list);
-        Collections.sort(sorted, (a, b) -> Integer.compare(getPriority(a), getPriority(b)));
+        switch (mode) {
+            case BY_PERSON:
+                sorted.sort((a, b) -> {
+                    String nameA = (a.getAssignee() != null) ? a.getAssignee().getName() : null;
+                    String nameB = (b.getAssignee() != null) ? b.getAssignee().getName() : null;
+                    if (nameA == null && nameB == null) return 0;
+                    if (nameA == null) return 1;
+                    if (nameB == null) return -1;
+                    return nameA.compareTo(nameB);
+                });
+                break;
+            case BY_DEADLINE:
+                sorted.sort((a, b) -> {
+                    String dateA = a.getDueDate();
+                    String dateB = b.getDueDate();
+                    if (dateA == null && dateB == null) return 0;
+                    if (dateA == null) return 1;
+                    if (dateB == null) return -1;
+                    return dateA.compareTo(dateB);
+                });
+                break;
+            default:
+                sorted.sort(Comparator.comparingInt(MainViewModel::getPriorityStatic));
+                break;
+        }
         return sorted;
+    }
+
+    static int getPriorityStatic(TaskResponse task) {
+        if ("COMPLETED".equals(task.getStatus())) return 3;
+        long dday = calcDdayStatic(task.getDueDate());
+        if (dday <= 3) return 0;
+        if ("IN_PROGRESS".equals(task.getStatus())) return 1;
+        return 2;
+    }
+
+    static long calcDdayStatic(String dueDateStr) {
+        if (dueDateStr == null) return 999L;
+        try {
+            String[] parts = dueDateStr.split("-");
+            if (parts.length != 3) return 999L;
+            int year = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]) - 1;
+            int day = Integer.parseInt(parts[2]);
+            Calendar today = Calendar.getInstance();
+            today.set(Calendar.HOUR_OF_DAY, 0);
+            today.set(Calendar.MINUTE, 0);
+            today.set(Calendar.SECOND, 0);
+            today.set(Calendar.MILLISECOND, 0);
+            Calendar due = Calendar.getInstance();
+            due.set(year, month, day, 0, 0, 0);
+            due.set(Calendar.MILLISECOND, 0);
+            long diffMs = due.getTimeInMillis() - today.getTimeInMillis();
+            return diffMs / (24L * 60 * 60 * 1000);
+        } catch (Exception e) {
+            return 999L;
+        }
     }
 
     public int getPriority(TaskResponse task) {
@@ -176,13 +247,13 @@ public class MainViewModel extends ViewModel {
     }
 
     public void createTeam(String name) {
-        teamRepository.createTeam(name).enqueue(new Callback<ApiResponse<TeamResponse>>() {
+        teamRepository.createTeam(name).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
             @Override
-            public void onResponse(Call<ApiResponse<TeamResponse>> call, Response<ApiResponse<TeamResponse>> response) {
+            public void onResponse(Call<ApiResponse<TeamDetailResponse>> call, Response<ApiResponse<TeamDetailResponse>> response) {
                 if (response.isSuccessful()) loadTeams();
             }
             @Override
-            public void onFailure(Call<ApiResponse<TeamResponse>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {}
         });
     }
 

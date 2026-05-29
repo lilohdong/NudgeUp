@@ -13,6 +13,11 @@ public class TeamResponse {
 
     public TeamResponse() {}
 
+    public TeamResponse(long id, String name, String inviteCode) {
+        this.id = id;
+        this.name = name;
+    }
+
     public long getId() { return id; }
     public String getName() { return name; }
     public long getLeaderId() { return leaderId; }
