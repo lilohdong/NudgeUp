@@ -11,8 +11,9 @@ import lombok.RequiredArgsConstructor;
 public enum ErrorCode {
 
     // Auth
+    DUPLICATE_USER_ID(409, "이미 사용 중인 아이디입니다."),
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
-    INVALID_CREDENTIALS(401, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    INVALID_CREDENTIALS(401, "아이디 또는 비밀번호가 올바르지 않습니다."),
     INVALID_TOKEN(401, "유효하지 않거나 만료된 토큰입니다."),
 
     // User

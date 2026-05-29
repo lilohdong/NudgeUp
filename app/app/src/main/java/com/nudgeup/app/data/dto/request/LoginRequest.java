@@ -1,11 +1,11 @@
 package com.nudgeup.app.data.dto.request;
 
 public class LoginRequest {
-    private String email;
+    private String userId;
     private String password;
 
-    public LoginRequest(String email, String password) {
-        this.email = email;
+    public LoginRequest(String userId, String password) {
+        this.userId = userId;
         this.password = password;
     }
 }

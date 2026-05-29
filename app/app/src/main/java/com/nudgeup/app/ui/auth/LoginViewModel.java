@@ -34,8 +34,8 @@ public class LoginViewModel extends ViewModel {
 
     public LiveData<UiResult> getLoginResult() { return loginResult; }
 
-    public void login(String email, String password) {
-        authRepository.login(email, password).enqueue(new Callback<ApiResponse<AuthResponse>>() {
+    public void login(String userId, String password) {
+        authRepository.login(userId, password).enqueue(new Callback<ApiResponse<AuthResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {

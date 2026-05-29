@@ -8,7 +8,12 @@ import lombok.Getter;
 @Getter
 public class RegisterRequest {
 
+    @NotBlank(message = "아이디는 필수입니다.")
+    @Size(min = 4, max = 20, message = "아이디는 4~20자여야 합니다.")
+    private String userId;
+
     @NotBlank(message = "이름은 필수입니다.")
+    @Size(max = 50, message = "이름은 50자 이내여야 합니다.")
     private String username;
 
     @NotBlank(message = "이메일은 필수입니다.")

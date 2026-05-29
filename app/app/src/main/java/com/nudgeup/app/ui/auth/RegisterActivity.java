@@ -18,7 +18,7 @@ import com.nudgeup.app.ui.main.MainActivity;
 public class RegisterActivity extends AppCompatActivity {
 
     private RegisterViewModel viewModel;
-    private EditText etId, etEmail, etPassword, etPasswordConfirm;
+    private EditText etId, etName, etEmail, etPassword, etPasswordConfirm;
     private ImageButton btnTogglePassword, btnTogglePasswordConfirm;
     private boolean isPwVisible = false, isPwConfirmVisible = false;
 
@@ -31,6 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
                 .get(RegisterViewModel.class);
 
         etId = findViewById(R.id.et_id);
+        etName = findViewById(R.id.et_name);
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         etPasswordConfirm = findViewById(R.id.et_password_confirm);
@@ -64,12 +65,14 @@ public class RegisterActivity extends AppCompatActivity {
         tvLogin.setOnClickListener(v -> finish());
 
         btnRegister.setOnClickListener(v -> {
-            String id = etId.getText().toString().trim();
+            String userId = etId.getText().toString().trim();
+            String name = etName.getText().toString().trim();
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String passwordConfirm = etPasswordConfirm.getText().toString().trim();
 
-            if (id.isEmpty() || email.isEmpty() || password.isEmpty() || passwordConfirm.isEmpty()) {
+            if (userId.isEmpty() || name.isEmpty() || email.isEmpty()
+                    || password.isEmpty() || passwordConfirm.isEmpty()) {
                 Toast.makeText(this, "모든 항목을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -81,7 +84,7 @@ public class RegisterActivity extends AppCompatActivity {
                 Toast.makeText(this, "이용약관에 동의해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            viewModel.register(email, password, id);
+            viewModel.register(userId, name, email, password);
         });
 
         viewModel.getRegisterResult().observe(this, result -> {
