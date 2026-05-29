@@ -3,9 +3,10 @@ package com.nudgeup.app.ui.auth;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import com.nudgeup.app.NudgeUpApplication;
+import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.UserResponse;
+import com.nudgeup.app.data.local.TokenManager;
 import com.nudgeup.app.data.repository.AuthRepository;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -16,8 +17,19 @@ public class RegisterViewModel extends ViewModel {
     private final AuthRepository authRepository;
     private final MutableLiveData<LoginViewModel.UiResult> registerResult = new MutableLiveData<>();
 
-    public RegisterViewModel() {
-        authRepository = new AuthRepository(NudgeUpApplication.getTokenManager());
+    public RegisterViewModel(AuthRepository authRepository) {
+        this.authRepository = authRepository;
+    }
+
+    public static class Factory implements ViewModelProvider.Factory {
+        private final TokenManager tokenManager;
+        public Factory(TokenManager tokenManager) { this.tokenManager = tokenManager; }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T extends ViewModel> T create(Class<T> modelClass) {
+            return (T) new RegisterViewModel(new AuthRepository(tokenManager));
+        }
     }
 
     public LiveData<LoginViewModel.UiResult> getRegisterResult() { return registerResult; }

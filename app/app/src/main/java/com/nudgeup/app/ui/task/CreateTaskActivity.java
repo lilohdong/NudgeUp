@@ -33,7 +33,7 @@ public class CreateTaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_task);
 
         long teamId = getIntent().getLongExtra("teamId", -1);
-        viewModel = new ViewModelProvider(this).get(CreateTaskViewModel.class);
+        viewModel = new ViewModelProvider(this, new CreateTaskViewModel.Factory()).get(CreateTaskViewModel.class);
         viewModel.loadTeamMembers(teamId);
 
         etTitle = findViewById(R.id.et_title);
@@ -110,11 +110,7 @@ public class CreateTaskActivity extends AppCompatActivity {
             viewModel.createTask(teamId, title, description.isEmpty() ? null : description, assigneeId, selectedDueDate);
         });
 
-        // 임시 저장 (취소)
-        btnCancel.setOnClickListener(v -> {
-            Toast.makeText(this, "임시 저장되었습니다.", Toast.LENGTH_SHORT).show();
-            finish();
-        });
+        btnCancel.setOnClickListener(v -> finish());
 
         // 닫기
         btnClose.setOnClickListener(v -> finish());
@@ -124,6 +120,10 @@ public class CreateTaskActivity extends AppCompatActivity {
                 if (success) finish();
                 else Toast.makeText(this, "작업 생성에 실패했습니다.", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        viewModel.getNetworkError().observe(this, msg -> {
+            if (msg != null) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         });
     }
 }

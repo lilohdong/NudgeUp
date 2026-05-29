@@ -2,6 +2,7 @@ package com.nudgeup.app.data.local;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class TokenManager {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (GeneralSecurityException | IOException e) {
+            Log.e("TokenManager", "EncryptedSharedPreferences 초기화 실패, 평문 저장소로 폴백합니다.", e);
             p = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         }
         prefs = p;

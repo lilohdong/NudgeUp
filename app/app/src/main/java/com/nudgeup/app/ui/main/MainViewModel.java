@@ -3,6 +3,7 @@ package com.nudgeup.app.ui.main;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.MemberResponse;
 import com.nudgeup.app.data.dto.response.TaskResponse;
@@ -21,9 +22,23 @@ import retrofit2.Response;
 
 public class MainViewModel extends ViewModel {
 
-    private final TeamRepository teamRepository = new TeamRepository();
-    private final TaskRepository taskRepository = new TaskRepository();
-    private final NudgeRepository nudgeRepository = new NudgeRepository();
+    private final TeamRepository teamRepository;
+    private final TaskRepository taskRepository;
+    private final NudgeRepository nudgeRepository;
+
+    public MainViewModel(TeamRepository teamRepository, TaskRepository taskRepository, NudgeRepository nudgeRepository) {
+        this.teamRepository = teamRepository;
+        this.taskRepository = taskRepository;
+        this.nudgeRepository = nudgeRepository;
+    }
+
+    public static class Factory implements ViewModelProvider.Factory {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T extends ViewModel> T create(Class<T> modelClass) {
+            return (T) new MainViewModel(new TeamRepository(), new TaskRepository(), new NudgeRepository());
+        }
+    }
 
     private final MutableLiveData<List<TeamResponse>> teams = new MutableLiveData<>();
     private final MutableLiveData<List<TaskResponse>> teamTasks = new MutableLiveData<>();
@@ -52,13 +67,16 @@ public class MainViewModel extends ViewModel {
     public LiveData<String> getNetworkError() { return networkError; }
 
     public void setTeamTasksSortMode(SortMode mode) {
+        if (teamTasksSortMode == mode) return;
         teamTasksSortMode = mode;
         applyFilter();
     }
 
     public void setMyTasksSortMode(SortMode mode) {
+        if (myTasksSortMode == mode) return;
         myTasksSortMode = mode;
-        loadMyTasks();
+        TeamResponse team = currentTeam.getValue();
+        if (team != null) loadMyTasks(team.getId());
     }
 
     public void loadTeams() {
@@ -102,7 +120,8 @@ public class MainViewModel extends ViewModel {
             public void onResponse(Call<ApiResponse<List<TaskResponse>>> call,
                                    Response<ApiResponse<List<TaskResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    allTasksCache = new ArrayList<>(response.body().getData());
+                    List<TaskResponse> data = response.body().getData();
+                    allTasksCache = data != null ? new ArrayList<>(data) : new ArrayList<>();
                     applyFilter();
                 }
             }
@@ -112,18 +131,17 @@ public class MainViewModel extends ViewModel {
             }
         });
 
-        loadMyTasks();
+        loadMyTasks(teamId);
     }
 
-    private void loadMyTasks() {
-        TeamResponse team = currentTeam.getValue();
-        if (team == null) return;
-        taskRepository.getMyTasks(team.getId()).enqueue(new Callback<ApiResponse<List<TaskResponse>>>() {
+    private void loadMyTasks(long teamId) {
+        taskRepository.getMyTasks(teamId).enqueue(new Callback<ApiResponse<List<TaskResponse>>>() {
             @Override
             public void onResponse(Call<ApiResponse<List<TaskResponse>>> call,
                                    Response<ApiResponse<List<TaskResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    myTasks.setValue(sortTasksStatic(response.body().getData(), myTasksSortMode));
+                    List<TaskResponse> data = response.body().getData();
+                    myTasks.setValue(sortTasksStatic(data != null ? data : new ArrayList<>(), myTasksSortMode));
                 }
             }
             @Override
@@ -217,7 +235,9 @@ public class MainViewModel extends ViewModel {
                 if (response.isSuccessful()) loadTeams();
             }
             @Override
-            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
         });
     }
 

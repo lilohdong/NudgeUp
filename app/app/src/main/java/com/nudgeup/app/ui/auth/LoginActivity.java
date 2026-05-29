@@ -35,7 +35,8 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
-        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        viewModel = new ViewModelProvider(this, new LoginViewModel.Factory(NudgeUpApplication.getTokenManager()))
+                .get(LoginViewModel.class);
 
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);

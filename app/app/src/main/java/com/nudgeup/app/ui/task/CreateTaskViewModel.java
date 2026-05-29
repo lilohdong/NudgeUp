@@ -3,6 +3,7 @@ package com.nudgeup.app.ui.task;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.MemberResponse;
 import com.nudgeup.app.data.dto.response.TaskResponse;
@@ -16,14 +17,29 @@ import retrofit2.Response;
 
 public class CreateTaskViewModel extends ViewModel {
 
-    private final TaskRepository taskRepository = new TaskRepository();
-    private final TeamRepository teamRepository = new TeamRepository();
+    private final TaskRepository taskRepository;
+    private final TeamRepository teamRepository;
+
+    public CreateTaskViewModel(TaskRepository taskRepository, TeamRepository teamRepository) {
+        this.taskRepository = taskRepository;
+        this.teamRepository = teamRepository;
+    }
+
+    public static class Factory implements ViewModelProvider.Factory {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T extends ViewModel> T create(Class<T> modelClass) {
+            return (T) new CreateTaskViewModel(new TaskRepository(), new TeamRepository());
+        }
+    }
 
     private final MutableLiveData<Boolean> createResult = new MutableLiveData<>();
     private final MutableLiveData<List<MemberResponse>> members = new MutableLiveData<>();
+    private final MutableLiveData<String> networkError = new MutableLiveData<>();
 
     public LiveData<Boolean> getCreateResult() { return createResult; }
     public LiveData<List<MemberResponse>> getMembers() { return members; }
+    public LiveData<String> getNetworkError() { return networkError; }
 
     public void loadTeamMembers(long teamId) {
         teamRepository.getTeamDetail(teamId).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
@@ -39,7 +55,9 @@ public class CreateTaskViewModel extends ViewModel {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {
+                networkError.setValue("팀원 정보를 불러오지 못했습니다.");
+            }
         });
     }
 

@@ -3,6 +3,7 @@ package com.nudgeup.app.ui.team;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.data.dto.request.MemberPermissionRequest;
 import com.nudgeup.app.data.dto.request.TeamSettingsRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
@@ -19,18 +20,32 @@ import retrofit2.Response;
 
 public class TeamSettingsViewModel extends ViewModel {
 
-    private final TeamRepository teamRepository = new TeamRepository();
+    private final TeamRepository teamRepository;
 
-    private final MutableLiveData<List<MemberResponse>> members   = new MutableLiveData<>();
-    private final MutableLiveData<Boolean>              saveResult  = new MutableLiveData<>();
-    private final MutableLiveData<String>               inviteCode  = new MutableLiveData<>();
+    public TeamSettingsViewModel(TeamRepository teamRepository) {
+        this.teamRepository = teamRepository;
+    }
+
+    public static class Factory implements ViewModelProvider.Factory {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T extends ViewModel> T create(Class<T> modelClass) {
+            return (T) new TeamSettingsViewModel(new TeamRepository());
+        }
+    }
+
+    private final MutableLiveData<List<MemberResponse>> members      = new MutableLiveData<>();
+    private final MutableLiveData<Boolean>              saveResult   = new MutableLiveData<>();
+    private final MutableLiveData<String>               inviteCode   = new MutableLiveData<>();
+    private final MutableLiveData<String>               networkError = new MutableLiveData<>();
 
     private final Map<Long, Boolean> pendingNudgePermissions = new HashMap<>();
     private Long pendingNewLeaderId = null;
 
-    public LiveData<List<MemberResponse>> getMembers()   { return members; }
-    public LiveData<Boolean>             getSaveResult() { return saveResult; }
-    public LiveData<String>              getInviteCode() { return inviteCode; }
+    public LiveData<List<MemberResponse>> getMembers()      { return members; }
+    public LiveData<Boolean>             getSaveResult()   { return saveResult; }
+    public LiveData<String>              getInviteCode()   { return inviteCode; }
+    public LiveData<String>              getNetworkError() { return networkError; }
 
     public void loadMembers(long teamId) {
         teamRepository.getTeamDetail(teamId).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
@@ -46,7 +61,9 @@ public class TeamSettingsViewModel extends ViewModel {
                 }
             }
             @Override
-            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {}
+            public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {
+                networkError.setValue("팀원 정보를 불러오지 못했습니다.");
+            }
         });
     }
 

@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        viewModel = new ViewModelProvider(this, new MainViewModel.Factory()).get(MainViewModel.class);
 
         // View 참조
         LinearLayout sidebarTeamContainer = findViewById(R.id.sidebar_team_container);
@@ -81,6 +81,14 @@ public class MainActivity extends AppCompatActivity {
                 true
         );
         rvMyTasks.setAdapter(myTaskAdapter);
+
+        // 팀 설정 (getCurrentTeam이 갱신될 때마다 teamId를 읽어옴)
+        btnTeamSettings.setOnClickListener(v -> {
+            if (viewModel.getCurrentTeam().getValue() == null) return;
+            Intent intent = new Intent(this, TeamSettingsActivity.class);
+            intent.putExtra("teamId", viewModel.getCurrentTeam().getValue().getId());
+            startActivity(intent);
+        });
 
         // 버튼 이벤트
         btnAddTeam.setOnClickListener(v ->
@@ -136,20 +144,13 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getCurrentTeam().observe(this, team -> {
             if (team == null) return;
             tvTeamName.setText(team.getName());
+            btnTeamSettings.setVisibility(View.VISIBLE);
 
             // 팀 탭 선택 표시 갱신
             if (teamTabAdapter != null) {
                 teamTabAdapter.setSelectedTeamId(team.getId());
                 teamTabAdapter.addTabsTo(sidebarTeamContainer);
             }
-
-            // 팀 설정 버튼 (항상 표시)
-            btnTeamSettings.setVisibility(View.VISIBLE);
-            btnTeamSettings.setOnClickListener(v -> {
-                Intent intent = new Intent(this, TeamSettingsActivity.class);
-                intent.putExtra("teamId", team.getId());
-                startActivity(intent);
-            });
         });
 
         viewModel.getMembers().observe(this, members ->

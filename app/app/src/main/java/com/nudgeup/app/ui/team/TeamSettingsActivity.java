@@ -39,7 +39,7 @@ public class TeamSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_team_settings);
 
         teamId = getIntent().getLongExtra("teamId", -1);
-        viewModel = new ViewModelProvider(this).get(TeamSettingsViewModel.class);
+        viewModel = new ViewModelProvider(this, new TeamSettingsViewModel.Factory()).get(TeamSettingsViewModel.class);
 
         View btnClose             = findViewById(R.id.btn_close);
         Button btnSave            = findViewById(R.id.btn_save);
@@ -98,6 +98,10 @@ public class TeamSettingsActivity extends AppCompatActivity {
                 Toast.makeText(this, success ? "저장 완료" : "저장 실패", Toast.LENGTH_SHORT).show();
                 if (success) finish();
             }
+        });
+
+        viewModel.getNetworkError().observe(this, msg -> {
+            if (msg != null) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         });
 
         btnSave.setOnClickListener(v -> viewModel.saveSettings(teamId));
