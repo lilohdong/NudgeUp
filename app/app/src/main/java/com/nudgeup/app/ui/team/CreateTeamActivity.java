@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.R;
 
 public class CreateTeamActivity extends AppCompatActivity {
@@ -23,11 +24,15 @@ public class CreateTeamActivity extends AppCompatActivity {
 
     private int selectedColor = TEAM_COLORS[0];
     private View lastSelectedView = null;
+    private CreateTeamViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_team);
+
+        viewModel = new ViewModelProvider(this, new CreateTeamViewModel.Factory())
+                .get(CreateTeamViewModel.class);
 
         EditText etTeamName = findViewById(R.id.et_team_name);
         LinearLayout colorPickerContainer = findViewById(R.id.color_picker_container);
@@ -86,15 +91,29 @@ public class CreateTeamActivity extends AppCompatActivity {
             colorPickerContainer.addView(colorCircle);
         }
 
+        viewModel.getCreateResult().observe(this, success -> {
+            if (Boolean.TRUE.equals(success)) {
+                setResult(RESULT_OK);
+                finish();
+            } else {
+                Toast.makeText(this, "팀 생성에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                btnCreate.setEnabled(true);
+            }
+        });
+
+        viewModel.getNetworkError().observe(this, error -> {
+            Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+            btnCreate.setEnabled(true);
+        });
+
         btnCreate.setOnClickListener(v -> {
             String name = etTeamName.getText().toString().trim();
             if (name.isEmpty()) {
                 Toast.makeText(this, "팀 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // TODO: 백엔드 연결 후 API 호출 (teamRepository.createTeam(name))
-            Toast.makeText(this, "\"" + name + "\" 팀이 생성되었습니다!", Toast.LENGTH_SHORT).show();
-            finish();
+            btnCreate.setEnabled(false);
+            viewModel.createTeam(name);
         });
     }
 }

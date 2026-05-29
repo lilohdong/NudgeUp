@@ -19,7 +19,7 @@ import com.nudgeup.app.ui.main.MainActivity;
 public class LoginActivity extends AppCompatActivity {
 
     private LoginViewModel viewModel;
-    private EditText etEmail, etPassword;
+    private EditText etUserId, etPassword;
     private ImageButton btnTogglePassword;
     private boolean isPasswordVisible = false;
 
@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this, new LoginViewModel.Factory(NudgeUpApplication.getTokenManager()))
                 .get(LoginViewModel.class);
 
-        etEmail = findViewById(R.id.et_email);
+        etUserId = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnTogglePassword = findViewById(R.id.btn_toggle_password);
         Button btnLogin = findViewById(R.id.btn_login);
@@ -51,7 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("nudgeup_prefs", MODE_PRIVATE);
         boolean isSaved = prefs.getBoolean("save_id", false);
         cbSaveId.setChecked(isSaved);
-        if (isSaved) etEmail.setText(prefs.getString("saved_id", ""));
+        if (isSaved) etUserId.setText(prefs.getString("saved_id", ""));
 
         // 뒤로가기 (앱 종료)
         btnBack.setOnClickListener(v -> finish());
@@ -70,16 +70,16 @@ public class LoginActivity extends AppCompatActivity {
 
         // 로그인 버튼
         btnLogin.setOnClickListener(v -> {
-            String email = etEmail.getText().toString().trim();
+            String userId = etUserId.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
-            if (email.isEmpty() || password.isEmpty()) {
+            if (userId.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "아이디와 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (cbSaveId.isChecked()) {
-                prefs.edit().putString("saved_id", email).apply();
+                prefs.edit().putString("saved_id", userId).apply();
             }
-            viewModel.login(email, password);
+            viewModel.login(userId, password);
         });
 
         // 회원가입 버튼

@@ -34,8 +34,8 @@ public class RegisterViewModel extends ViewModel {
 
     public LiveData<LoginViewModel.UiResult> getRegisterResult() { return registerResult; }
 
-    public void register(String email, String password, String name) {
-        authRepository.register(email, password, name).enqueue(new Callback<ApiResponse<UserResponse>>() {
+    public void register(String userId, String username, String email, String password) {
+        authRepository.register(userId, username, email, password).enqueue(new Callback<ApiResponse<UserResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<UserResponse>> call, Response<ApiResponse<UserResponse>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {

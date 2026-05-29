@@ -20,12 +20,12 @@ public class AuthRepository {
         this.tokenManager = tokenManager;
     }
 
-    public Call<ApiResponse<AuthResponse>> login(String email, String password) {
-        return authApi.login(new LoginRequest(email, password));
+    public Call<ApiResponse<AuthResponse>> login(String userId, String password) {
+        return authApi.login(new LoginRequest(userId, password));
     }
 
-    public Call<ApiResponse<UserResponse>> register(String email, String password, String username) {
-        return authApi.register(new RegisterRequest(email, password, username));
+    public Call<ApiResponse<UserResponse>> register(String userId, String username, String email, String password) {
+        return authApi.register(new RegisterRequest(userId, username, email, password));
     }
 
     public Call<ApiResponse<Void>> logout() {
@@ -38,6 +38,10 @@ public class AuthRepository {
 
     public void saveUserId(long userId) {
         tokenManager.saveUserId(userId);
+    }
+
+    public void saveUsername(String username) {
+        tokenManager.saveUsername(username);
     }
 
     public void clearTokens() {

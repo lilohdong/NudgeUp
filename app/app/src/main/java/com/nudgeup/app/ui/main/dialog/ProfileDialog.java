@@ -26,10 +26,20 @@ import com.nudgeup.app.ui.auth.LoginActivity;
 
 public class ProfileDialog extends DialogFragment {
 
+    private static final String ARG_IS_LEADER = "is_leader";
+
     private static final String PREFS_NAME  = "profile_prefs";
     private static final String KEY_NAME    = "profile_name";
     private static final String KEY_COLOR   = "profile_avatar_color";
     private static final int    DEFAULT_COLOR = 0xFFD4FF00; // 시그니처 라임
+
+    public static ProfileDialog newInstance(boolean isLeader) {
+        ProfileDialog dialog = new ProfileDialog();
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_IS_LEADER, isLeader);
+        dialog.setArguments(args);
+        return dialog;
+    }
 
     /** 선택 가능한 아바타 색상 팔레트 (8가지) */
     private static final int[] SWATCH_COLORS = {
@@ -67,7 +77,13 @@ public class ProfileDialog extends DialogFragment {
         // ── SharedPreferences 로드 ──
         SharedPreferences prefs = requireContext()
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        currentName   = prefs.getString(KEY_NAME, "이원호");
+        String savedName = prefs.getString(KEY_NAME, null);
+        if (savedName != null) {
+            currentName = savedName;
+        } else {
+            String tokenUsername = NudgeUpApplication.getTokenManager().getUsername();
+            currentName = tokenUsername != null ? tokenUsername : "";
+        }
         selectedColor = prefs.getInt(KEY_COLOR, DEFAULT_COLOR);
 
         // ── View 바인딩 ──
@@ -80,9 +96,8 @@ public class ProfileDialog extends DialogFragment {
         flAvatarEditBadge     = view.findViewById(R.id.fl_avatar_edit_badge);
         btnEditProfile        = view.findViewById(R.id.btn_edit_profile);
 
-        // ── 고정 mock 데이터 (백엔드 연결 후 실제 데이터로 교체) ──
-        // TODO: 백엔드 연결 후 TokenManager / API로 실제 데이터 사용
-        ((TextView) view.findViewById(R.id.tv_user_role)).setText("팀장");
+        boolean isLeader = getArguments() != null && getArguments().getBoolean(ARG_IS_LEADER, false);
+        ((TextView) view.findViewById(R.id.tv_user_role)).setText(isLeader ? "팀장" : "팀원");
 
         // ── 초기 아바타·이름 렌더링 ──
         applyAvatarColor(selectedColor);

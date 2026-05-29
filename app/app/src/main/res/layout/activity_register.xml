@@ -75,6 +75,29 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="16dp"/>
 
+        <!-- 이름 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="이름"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/et_name"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="팀원에게 표시될 이름을 입력하세요"
+            android:background="@drawable/bg_input"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint_color"
+            android:inputType="textPersonName"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp"/>
+
         <!-- 이메일 -->
         <TextView
             android:layout_width="wrap_content"

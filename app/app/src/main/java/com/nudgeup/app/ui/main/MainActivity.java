@@ -9,6 +9,8 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,6 +31,13 @@ public class MainActivity extends AppCompatActivity {
     private TaskListAdapter myTaskAdapter;
     private MemberFilterAdapter memberFilterAdapter;
     private TeamTabAdapter teamTabAdapter;
+
+    private final ActivityResultLauncher<Intent> createTeamLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    viewModel.loadTeams();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,10 +101,12 @@ public class MainActivity extends AppCompatActivity {
 
         // 버튼 이벤트
         btnAddTeam.setOnClickListener(v ->
-                startActivity(new Intent(this, CreateTeamActivity.class)));
+                createTeamLauncher.launch(new Intent(this, CreateTeamActivity.class)));
 
-        btnMy.setOnClickListener(v ->
-                new ProfileDialog().show(getSupportFragmentManager(), "profile"));
+        btnMy.setOnClickListener(v -> {
+            boolean isLeader = viewModel.isCurrentUserLeader();
+            ProfileDialog.newInstance(isLeader).show(getSupportFragmentManager(), "profile");
+        });
 
         btnNewTask.setOnClickListener(v -> {
             Intent intent = new Intent(this, CreateTaskActivity.class);
@@ -144,7 +155,8 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getCurrentTeam().observe(this, team -> {
             if (team == null) return;
             tvTeamName.setText(team.getName());
-            btnTeamSettings.setVisibility(View.VISIBLE);
+            btnTeamSettings.setVisibility(
+                    "LEADER".equals(team.getMyRole()) ? View.VISIBLE : View.GONE);
 
             // 팀 탭 선택 표시 갱신
             if (teamTabAdapter != null) {
