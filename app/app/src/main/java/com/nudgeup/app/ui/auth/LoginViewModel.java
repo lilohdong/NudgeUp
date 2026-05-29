@@ -7,6 +7,7 @@ import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.AuthResponse;
 import com.nudgeup.app.data.repository.AuthRepository;
+import com.nudgeup.app.data.repository.UserRepository;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -32,6 +33,18 @@ public class LoginViewModel extends ViewModel {
                     if (data.getUser() != null) {
                         authRepository.saveUserId(data.getUser().getId());
                     }
+                    // FCM 토큰 등록
+                    com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                        .addOnSuccessListener(fcmToken -> {
+                            if (fcmToken != null) {
+                                new UserRepository().registerFcmToken(fcmToken).enqueue(new Callback<ApiResponse<Void>>() {
+                                    @Override
+                                    public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {}
+                                    @Override
+                                    public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {}
+                                });
+                            }
+                        });
                     loginResult.setValue(UiResult.success());
                 } else {
                     loginResult.setValue(UiResult.fail("이메일 또는 비밀번호를 확인해주세요."));
