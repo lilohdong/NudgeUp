@@ -38,6 +38,9 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "last_name_changed_at")
+    private LocalDateTime lastNameChangedAt;
+
     @Builder
     public User(String userId, String username, String email, String password, String color) {
         this.userId = userId;
@@ -48,7 +51,10 @@ public class User {
     }
 
     public void updateProfile(String username, String color) {
-        if (username != null) this.username = username;
+        if (username != null) {
+            this.username = username;
+            this.lastNameChangedAt = LocalDateTime.now();
+        }
         if (color != null) this.color = color;
     }
 

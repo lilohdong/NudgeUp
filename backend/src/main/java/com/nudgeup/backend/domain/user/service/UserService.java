@@ -1,6 +1,7 @@
 package com.nudgeup.backend.domain.user.service;
 
 import com.nudgeup.backend.domain.user.dto.request.FcmTokenRequest;
+import java.time.LocalDateTime;
 import com.nudgeup.backend.domain.user.dto.request.UpdateUserRequest;
 import com.nudgeup.backend.domain.user.dto.response.UserResponse;
 import com.nudgeup.backend.domain.user.repository.UserRepository;
@@ -27,6 +28,12 @@ public class UserService {
     public UserResponse updateMyProfile(Long userId, UpdateUserRequest request) {
         return userRepository.findById(userId)
                 .map(user -> {
+                    if (request.getUsername() != null) {
+                        LocalDateTime lastChanged = user.getLastNameChangedAt();
+                        if (lastChanged != null && LocalDateTime.now().isBefore(lastChanged.plusDays(7))) {
+                            throw new CustomException(ErrorCode.NAME_CHANGE_TOO_SOON);
+                        }
+                    }
                     user.updateProfile(request.getUsername(), request.getColor());
                     return UserResponse.from(user);
                 })

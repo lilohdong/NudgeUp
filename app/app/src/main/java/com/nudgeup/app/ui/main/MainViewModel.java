@@ -48,6 +48,9 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<Boolean> nudgeResult = new MutableLiveData<>();
     private final MutableLiveData<Integer> nudgeCount = new MutableLiveData<>(0);
     private final MutableLiveData<String> networkError = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> joinResult = new MutableLiveData<>();
+    public LiveData<Boolean> getJoinResult() { return joinResult; }
+    public void resetJoinResult() { joinResult.setValue(null); }
 
     private List<TaskResponse> allTasksCache = new ArrayList<>();
     private long selectedMemberId = -1L;
@@ -309,4 +312,24 @@ public class MainViewModel extends ViewModel {
 
     public long calcDday(String dueDateStr) { return calcDdayStatic(dueDateStr); }
     public int getPriority(TaskResponse task) { return getPriorityStatic(task); }
+
+    public void joinTeam(String inviteCode) {
+        teamRepository.joinTeam(inviteCode).enqueue(new Callback<ApiResponse<TeamResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<TeamResponse>> call,
+                                   Response<ApiResponse<TeamResponse>> response) {
+                if (response.isSuccessful() && response.body() != null
+                        && response.body().isSuccess()) {
+                    joinResult.setValue(true);
+                    loadTeams();
+                } else {
+                    joinResult.setValue(false);
+                }
+            }
+            @Override
+            public void onFailure(Call<ApiResponse<TeamResponse>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
+        });
+    }
 }
