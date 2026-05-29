@@ -20,8 +20,8 @@ public class TaskRepository {
         return taskApi.getTasks(teamId);
     }
 
-    public Call<ApiResponse<TaskResponse>> createTask(String title, long assigneeId, long teamId, String dueDate) {
-        return taskApi.createTask(new CreateTaskRequest(title, assigneeId, teamId, dueDate));
+    public Call<ApiResponse<TaskResponse>> createTask(String title, String description, Long assigneeId, String dueDate) {
+        return taskApi.createTask(new CreateTaskRequest(title, description, assigneeId, dueDate));
     }
 
     public Call<ApiResponse<TaskResponse>> updateStatus(long taskId, String status) {
