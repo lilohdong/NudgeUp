@@ -37,7 +37,7 @@ android {
     // 실기기 테스트 시 BASE_URL을 PC의 LAN IP로 변경하세요 (예: "http://192.168.0.10:8080/api/v1/")
     // 에뮬레이터 기본값: http://10.0.2.2:8080/api/v1/
     buildTypes.all {
-        buildConfigField("String", "BASE_URL", "\"http://192.168.0.44:8080/api/v1/\"")
+        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
