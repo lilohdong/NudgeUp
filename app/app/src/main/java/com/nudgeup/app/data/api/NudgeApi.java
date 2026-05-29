@@ -7,6 +7,8 @@ import retrofit2.http.Path;
 
 public interface NudgeApi {
 
-    @POST("nudges/{taskId}")
-    Call<ApiResponse<Void>> sendNudge(@Path("taskId") long taskId);
+    @POST("teams/{teamId}/tasks/{taskId}/nudge")
+    Call<ApiResponse<Void>> sendNudge(
+            @Path("teamId") long teamId,
+            @Path("taskId") long taskId);
 }
