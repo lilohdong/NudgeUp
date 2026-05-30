@@ -14,12 +14,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 import com.nudgeup.app.data.dto.response.MemberResponse;
 import java.util.List;
 
@@ -95,13 +95,13 @@ public class TeamSettingsActivity extends AppCompatActivity {
 
         viewModel.getSaveResult().observe(this, success -> {
             if (success != null) {
-                Toast.makeText(this, success ? "저장 완료" : "저장 실패", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, success ? "저장 완료" : "저장 실패");
                 if (success) finish();
             }
         });
 
         viewModel.getNetworkError().observe(this, msg -> {
-            if (msg != null) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            if (msg != null) ToastUtils.show(this, msg);
         });
 
         btnSave.setOnClickListener(v -> viewModel.saveSettings(teamId));
@@ -118,7 +118,7 @@ public class TeamSettingsActivity extends AppCompatActivity {
         ClipboardManager clipboard =
                 (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         clipboard.setPrimaryClip(ClipData.newPlainText("초대 코드", code));
-        Toast.makeText(this, "초대 코드가 복사됐습니다", Toast.LENGTH_SHORT).show();
+        ToastUtils.show(this, "초대 코드가 복사됐습니다");
     }
 
     // ─────────────────────────────────────────

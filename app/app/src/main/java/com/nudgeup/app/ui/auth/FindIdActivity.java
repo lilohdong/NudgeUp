@@ -7,6 +7,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 
 public class FindIdActivity extends AppCompatActivity {
 
@@ -28,11 +29,11 @@ public class FindIdActivity extends AppCompatActivity {
         btnFindId.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             if (email.isEmpty()) {
-                Toast.makeText(this, "이메일을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "이메일을 입력해주세요.");
                 return;
             }
             // TODO: 백엔드 연결 후 실제 API 호출
-            Toast.makeText(this, "입력하신 이메일로 아이디를 전송했습니다.", Toast.LENGTH_LONG).show();
+            ToastUtils.show(this, "입력하신 이메일로 아이디를 전송했습니다.", Toast.LENGTH_LONG);
         });
     }
 }

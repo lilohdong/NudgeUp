@@ -1,7 +1,8 @@
 package com.nudgeup.app.data.api;
 
 import com.nudgeup.app.data.dto.request.FcmTokenRequest;
-import com.nudgeup.app.data.dto.request.UpdateUserRequest;
+import com.nudgeup.app.data.dto.request.UpdateColorRequest;
+import com.nudgeup.app.data.dto.request.UpdateUsernameRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.UserResponse;
 import retrofit2.Call;
@@ -19,5 +20,8 @@ public interface UserApi {
     Call<ApiResponse<Void>> registerFcmToken(@Body FcmTokenRequest request);
 
     @PATCH("users/me")
-    Call<ApiResponse<UserResponse>> updateProfile(@Body UpdateUserRequest request);
+    Call<ApiResponse<UserResponse>> updateUsername(@Body UpdateUsernameRequest request);
+
+    @PATCH("users/me/color")
+    Call<ApiResponse<UserResponse>> updateColor(@Body UpdateColorRequest request);
 }

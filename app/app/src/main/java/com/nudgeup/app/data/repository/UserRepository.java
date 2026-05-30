@@ -2,7 +2,8 @@ package com.nudgeup.app.data.repository;
 
 import com.nudgeup.app.data.api.UserApi;
 import com.nudgeup.app.data.dto.request.FcmTokenRequest;
-import com.nudgeup.app.data.dto.request.UpdateUserRequest;
+import com.nudgeup.app.data.dto.request.UpdateColorRequest;
+import com.nudgeup.app.data.dto.request.UpdateUsernameRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.UserResponse;
 import com.nudgeup.app.global.network.ApiClient;
@@ -24,7 +25,11 @@ public class UserRepository {
         return userApi.registerFcmToken(new FcmTokenRequest(token));
     }
 
-    public Call<ApiResponse<UserResponse>> updateProfile(String username, String color) {
-        return userApi.updateProfile(new UpdateUserRequest(username, color));
+    public Call<ApiResponse<UserResponse>> updateUsername(String username) {
+        return userApi.updateUsername(new UpdateUsernameRequest(username));
+    }
+
+    public Call<ApiResponse<UserResponse>> updateColor(String colorHex) {
+        return userApi.updateColor(new UpdateColorRequest(colorHex));
     }
 }

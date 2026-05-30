@@ -9,9 +9,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 
 import java.util.Locale;
 
@@ -76,7 +76,7 @@ public class FindPasswordActivity extends AppCompatActivity {
         btnStep1Next.setOnClickListener(v -> {
             String email = etStep1Email.getText().toString().trim();
             if (email.isEmpty()) {
-                Toast.makeText(this, "이메일을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "이메일을 입력해주세요.");
                 return;
             }
             etStep2EmailReadonly.setText(email);
@@ -89,7 +89,7 @@ public class FindPasswordActivity extends AppCompatActivity {
         btnStep2Confirm.setOnClickListener(v -> {
             String code = etCode.getText().toString().trim();
             if (code.isEmpty()) {
-                Toast.makeText(this, "인증번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "인증번호를 입력해주세요.");
                 return;
             }
             // TODO: 백엔드 연결 후 인증번호 검증 API 호출
@@ -101,7 +101,7 @@ public class FindPasswordActivity extends AppCompatActivity {
         tvResend.setOnClickListener(v -> {
             if (countDownTimer != null) countDownTimer.cancel();
             startTimer();
-            Toast.makeText(this, "인증번호를 재전송했습니다.", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "인증번호를 재전송했습니다.");
         });
 
         // Step 3: 비밀번호 변경
@@ -109,15 +109,15 @@ public class FindPasswordActivity extends AppCompatActivity {
             String newPw = etNewPassword.getText().toString().trim();
             String newPwConfirm = etNewPasswordConfirm.getText().toString().trim();
             if (newPw.isEmpty()) {
-                Toast.makeText(this, "새 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "새 비밀번호를 입력해주세요.");
                 return;
             }
             if (!newPw.equals(newPwConfirm)) {
-                Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "비밀번호가 일치하지 않습니다.");
                 return;
             }
             // TODO: 백엔드 연결 후 비밀번호 변경 API 호출
-            Toast.makeText(this, "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, "비밀번호가 변경되었습니다.");
             finish();
         });
 
@@ -179,7 +179,7 @@ public class FindPasswordActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 tvTimer.setText("00:00");
-                Toast.makeText(FindPasswordActivity.this, "인증 시간이 만료되었습니다.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(FindPasswordActivity.this, "인증 시간이 만료되었습니다.");
             }
         }.start();
     }
