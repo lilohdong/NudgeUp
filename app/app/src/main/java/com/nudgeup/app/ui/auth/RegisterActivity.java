@@ -8,11 +8,11 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 import com.nudgeup.app.ui.main.MainActivity;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -73,15 +73,15 @@ public class RegisterActivity extends AppCompatActivity {
 
             if (userId.isEmpty() || name.isEmpty() || email.isEmpty()
                     || password.isEmpty() || passwordConfirm.isEmpty()) {
-                Toast.makeText(this, "모든 항목을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "모든 항목을 입력해주세요.");
                 return;
             }
             if (!password.equals(passwordConfirm)) {
-                Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "비밀번호가 일치하지 않습니다.");
                 return;
             }
             if (!cbTerms.isChecked()) {
-                Toast.makeText(this, "이용약관에 동의해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "이용약관에 동의해주세요.");
                 return;
             }
             viewModel.register(userId, name, email, password);
@@ -89,10 +89,10 @@ public class RegisterActivity extends AppCompatActivity {
 
         viewModel.getRegisterResult().observe(this, result -> {
             if (result.isSuccess()) {
-                Toast.makeText(this, "회원가입이 완료됐습니다. 로그인해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "회원가입이 완료됐습니다. 로그인해주세요.");
                 finish(); // LoginActivity로 복귀 (백스택에 있음)
             } else {
-                Toast.makeText(this, result.getMessage(), Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, result.getMessage());
             }
         });
     }

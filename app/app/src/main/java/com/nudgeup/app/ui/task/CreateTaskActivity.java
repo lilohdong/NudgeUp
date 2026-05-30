@@ -8,10 +8,10 @@ import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 import com.nudgeup.app.data.dto.response.MemberResponse;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -63,7 +63,7 @@ public class CreateTaskActivity extends AppCompatActivity {
         btnSelectAssignee.setOnClickListener(v -> {
             List<MemberResponse> memberList = viewModel.getMembers().getValue();
             if (memberList == null || memberList.isEmpty()) {
-                Toast.makeText(this, "팀원 정보를 불러오는 중입니다.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "팀원 정보를 불러오는 중입니다.");
                 return;
             }
             String[] names = new String[memberList.size() + 1];
@@ -102,7 +102,7 @@ public class CreateTaskActivity extends AppCompatActivity {
         btnCreate.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             if (title.isEmpty()) {
-                Toast.makeText(this, "작업 제목을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "작업 제목을 입력해주세요.");
                 return;
             }
             String description = etDescription.getText().toString().trim();
@@ -118,12 +118,12 @@ public class CreateTaskActivity extends AppCompatActivity {
         viewModel.getCreateResult().observe(this, success -> {
             if (success != null) {
                 if (success) finish();
-                else Toast.makeText(this, "작업 생성에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                else ToastUtils.show(this, "작업 생성에 실패했습니다.");
             }
         });
 
         viewModel.getNetworkError().observe(this, msg -> {
-            if (msg != null) Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            if (msg != null) ToastUtils.show(this, msg);
         });
     }
 }

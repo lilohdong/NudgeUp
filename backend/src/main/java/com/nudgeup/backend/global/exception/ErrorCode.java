@@ -18,6 +18,7 @@ public enum ErrorCode {
 
     // User
     USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다."),
+    USERNAME_CHANGE_TOO_SOON(400, "이름은 7일에 한 번만 변경 가능합니다."),
 
     // Team
     TEAM_NOT_FOUND(404, "팀을 찾을 수 없습니다."),

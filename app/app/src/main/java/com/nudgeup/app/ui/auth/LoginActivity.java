@@ -9,11 +9,11 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 import com.nudgeup.app.ui.main.MainActivity;
 
 public class LoginActivity extends AppCompatActivity {
@@ -73,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
             String userId = etUserId.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             if (userId.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "아이디와 비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "아이디와 비밀번호를 입력해주세요.");
                 return;
             }
             if (cbSaveId.isChecked()) {
@@ -92,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(new Intent(this, MainActivity.class));
                 finish();
             } else {
-                Toast.makeText(this, result.getMessage(), Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, result.getMessage());
             }
         });
     }

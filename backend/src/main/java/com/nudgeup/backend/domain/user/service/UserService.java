@@ -1,6 +1,7 @@
 package com.nudgeup.backend.domain.user.service;
 
 import com.nudgeup.backend.domain.user.dto.request.FcmTokenRequest;
+import com.nudgeup.backend.domain.user.dto.request.UpdateColorRequest;
 import com.nudgeup.backend.domain.user.dto.request.UpdateUserRequest;
 import com.nudgeup.backend.domain.user.dto.response.UserResponse;
 import com.nudgeup.backend.domain.user.repository.UserRepository;
@@ -24,10 +25,22 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateMyProfile(Long userId, UpdateUserRequest request) {
+    public UserResponse updateMyUsername(Long userId, UpdateUserRequest request) {
         return userRepository.findById(userId)
                 .map(user -> {
-                    user.updateProfile(request.getUsername(), request.getColor());
+                    if (request.getUsername() != null) {
+                        user.updateUsername(request.getUsername());
+                    }
+                    return UserResponse.from(user);
+                })
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    @Transactional
+    public UserResponse updateMyColor(Long userId, UpdateColorRequest request) {
+        return userRepository.findById(userId)
+                .map(user -> {
+                    user.updateColor(request.getColor());
                     return UserResponse.from(user);
                 })
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

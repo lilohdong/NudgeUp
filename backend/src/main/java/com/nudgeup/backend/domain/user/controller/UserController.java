@@ -1,6 +1,7 @@
 package com.nudgeup.backend.domain.user.controller;
 
 import com.nudgeup.backend.domain.user.dto.request.FcmTokenRequest;
+import com.nudgeup.backend.domain.user.dto.request.UpdateColorRequest;
 import com.nudgeup.backend.domain.user.dto.request.UpdateUserRequest;
 import com.nudgeup.backend.domain.user.dto.response.UserResponse;
 import com.nudgeup.backend.domain.user.service.UserService;
@@ -27,11 +28,19 @@ public class UserController {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponse>> updateMyProfile(
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyUsername(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateUserRequest request) {
         Long userId = userDetails.getUser().getId();
-        return ResponseEntity.ok(ApiResponse.success("프로필이 수정되었습니다.", userService.updateMyProfile(userId, request)));
+        return ResponseEntity.ok(ApiResponse.success("이름이 수정되었습니다.", userService.updateMyUsername(userId, request)));
+    }
+
+    @PatchMapping("/me/color")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyColor(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UpdateColorRequest request) {
+        Long userId = userDetails.getUser().getId();
+        return ResponseEntity.ok(ApiResponse.success("색상이 수정되었습니다.", userService.updateMyColor(userId, request)));
     }
 
     @PutMapping("/me/fcm-token")

@@ -74,28 +74,32 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
         int colorIndex = item.id == -1 ? 0 : (int)(item.id % (AVATAR_COLORS.length - 1)) + 1;
         int baseColor = AVATAR_COLORS[colorIndex];
 
-        GradientDrawable avatarBg = new GradientDrawable();
-        avatarBg.setShape(GradientDrawable.OVAL);
-
         if (isSelected) {
-            avatarBg.setColor(baseColor);
-            avatarBg.setStroke(2, 0xFFD4FF00); // lime border
+            holder.avatarBg.setColor(baseColor);
+            holder.avatarBg.setStroke(2, 0xFFD4FF00); // lime border
         } else {
             // dim color
             int r = (baseColor >> 16) & 0xFF;
             int g = (baseColor >> 8) & 0xFF;
             int b = baseColor & 0xFF;
             int dimColor = 0xFF000000 | ((r / 3) << 16) | ((g / 3) << 8) | (b / 3);
-            avatarBg.setColor(dimColor);
+            holder.avatarBg.setColor(dimColor);
+            holder.avatarBg.setStroke(0, 0); // 선택 해제 시 border 제거
         }
-        holder.tvAvatar.setBackground(avatarBg);
 
         holder.tvName.setText(name);
         holder.tvName.setTextColor(isSelected ? 0xFFD4FF00 : 0xFF8888AA);
 
         holder.itemView.setOnClickListener(v -> {
+            if (selectedId == item.id) return; // 이미 선택된 경우 무시
+            long prevId = selectedId;
             selectedId = item.id;
-            notifyDataSetChanged();
+            // 이전 선택 아이템만 갱신
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i).id == prevId) { notifyItemChanged(i); break; }
+            }
+            // 새 선택 아이템 갱신
+            notifyItemChanged(holder.getAdapterPosition());
             listener.onFilter(item.id);
         });
     }
@@ -107,11 +111,15 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvAvatar, tvName;
+        final GradientDrawable avatarBg;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvAvatar = itemView.findViewById(R.id.tv_member_avatar);
             tvName = itemView.findViewById(R.id.tv_member_name);
+            avatarBg = new GradientDrawable();
+            avatarBg.setShape(GradientDrawable.OVAL);
+            tvAvatar.setBackground(avatarBg);
         }
     }
 }

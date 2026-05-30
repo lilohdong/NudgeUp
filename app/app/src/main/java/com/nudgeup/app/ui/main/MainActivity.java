@@ -8,7 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 import com.nudgeup.app.ui.main.adapter.MemberFilterAdapter;
 import com.nudgeup.app.ui.main.adapter.TaskListAdapter;
 import com.nudgeup.app.ui.main.adapter.TeamTabAdapter;
@@ -23,6 +23,8 @@ import com.nudgeup.app.ui.main.dialog.ProfileDialog;
 import com.nudgeup.app.ui.task.CreateTaskActivity;
 import com.nudgeup.app.ui.team.CreateTeamActivity;
 import com.nudgeup.app.ui.team.TeamSettingsActivity;
+import com.nudgeup.app.data.dto.response.MemberResponse;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         View btnTeamSettings = findViewById(R.id.btn_team_settings);
         TextView btnMy = findViewById(R.id.btn_my);
         RecyclerView rvMemberFilter = findViewById(R.id.rv_member_filter);
+        TextView tvTeamTaskHeader = findViewById(R.id.tv_team_task_header);
         RecyclerView rvTeamTasks = findViewById(R.id.rv_team_tasks);
         RecyclerView rvMyTasks = findViewById(R.id.rv_my_tasks);
         TextView tvTeamTaskCount = findViewById(R.id.tv_team_task_count);
@@ -65,7 +68,24 @@ public class MainActivity extends AppCompatActivity {
         // 팀원 필터 RecyclerView (가로)
         LinearLayoutManager filterLm = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         rvMemberFilter.setLayoutManager(filterLm);
-        memberFilterAdapter = new MemberFilterAdapter(memberId -> viewModel.filterByMember(memberId));
+        memberFilterAdapter = new MemberFilterAdapter(memberId -> {
+            viewModel.filterByMember(memberId);
+            if (memberId == -1L) {
+                tvTeamTaskHeader.setText("팀원 전체 할일");
+            } else {
+                List<MemberResponse> members = viewModel.getMembers().getValue();
+                String memberName = "";
+                if (members != null) {
+                    for (MemberResponse m : members) {
+                        if (m.getUserId() == memberId) {
+                            memberName = m.getName();
+                            break;
+                        }
+                    }
+                }
+                tvTeamTaskHeader.setText(memberName + " 할일");
+            }
+        });
         rvMemberFilter.setAdapter(memberFilterAdapter);
 
         // 팀원 전체 할일 RecyclerView (종 아이콘 = 독촉)
@@ -118,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 정렬 Spinner 설정
         ArrayAdapter<CharSequence> sortAdapter = ArrayAdapter.createFromResource(
-                this, R.array.sort_options, android.R.layout.simple_spinner_item);
-        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.array.sort_options, R.layout.item_spinner_selected);
+        sortAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
 
         spinnerTeamTasksSort.setAdapter(sortAdapter);
         spinnerTeamTasksSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -183,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getNudgeResult().observe(this, success -> {
             if (success != null) {
-                Toast.makeText(this, success ? "독촉 알림을 보냈습니다." : "알림 전송에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, success ? "독촉 알림을 보냈습니다." : "알림 전송에 실패했습니다.");
             }
         });
 

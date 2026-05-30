@@ -6,10 +6,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
 
 public class CreateTeamActivity extends AppCompatActivity {
 
@@ -96,20 +96,20 @@ public class CreateTeamActivity extends AppCompatActivity {
                 setResult(RESULT_OK);
                 finish();
             } else {
-                Toast.makeText(this, "팀 생성에 실패했습니다.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "팀 생성에 실패했습니다.");
                 btnCreate.setEnabled(true);
             }
         });
 
         viewModel.getNetworkError().observe(this, error -> {
-            Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+            ToastUtils.show(this, error);
             btnCreate.setEnabled(true);
         });
 
         btnCreate.setOnClickListener(v -> {
             String name = etTeamName.getText().toString().trim();
             if (name.isEmpty()) {
-                Toast.makeText(this, "팀 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                ToastUtils.show(this, "팀 이름을 입력해주세요.");
                 return;
             }
             btnCreate.setEnabled(false);

@@ -1,5 +1,7 @@
 package com.nudgeup.backend.domain.user.entity;
 
+import com.nudgeup.backend.global.exception.CustomException;
+import com.nudgeup.backend.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,6 +36,9 @@ public class User {
     @Column(name = "fcm_token")
     private String fcmToken;
 
+    @Column(name = "username_changed_at")
+    private LocalDateTime usernameChangedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -47,8 +52,17 @@ public class User {
         this.color = color != null ? color : "#A78BFA";
     }
 
-    public void updateProfile(String username, String color) {
-        if (username != null) this.username = username;
+    public void updateUsername(String username) {
+        if (this.username.equals(username)) return;
+        if (usernameChangedAt != null &&
+                usernameChangedAt.plusDays(7).isAfter(LocalDateTime.now())) {
+            throw new CustomException(ErrorCode.USERNAME_CHANGE_TOO_SOON);
+        }
+        this.username = username;
+        this.usernameChangedAt = LocalDateTime.now();
+    }
+
+    public void updateColor(String color) {
         if (color != null) this.color = color;
     }
 

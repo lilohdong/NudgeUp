@@ -137,13 +137,11 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
                     ? String.valueOf(name.charAt(0)) : "?";
             holder.tvAssigneeAvatar.setText(initial);
             int avatarColor = AVATAR_COLORS[(int)(task.getAssignee().getId() % AVATAR_COLORS.length)];
-            GradientDrawable avatarBg = new GradientDrawable();
-            avatarBg.setShape(GradientDrawable.OVAL);
-            avatarBg.setColor(avatarColor);
-            holder.tvAssigneeAvatar.setBackground(avatarBg);
+            holder.avatarBg.setColor(avatarColor);
             holder.tvAssigneeName.setText(name);
         } else {
             holder.tvAssigneeAvatar.setText("?");
+            holder.avatarBg.setColor(0xFF4A4A6A);
             holder.tvAssigneeName.setText("미지정");
         }
 
@@ -151,7 +149,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         if (isMyTaskMode) {
             holder.btnAction.setImageResource(R.drawable.ic_edit);
             holder.btnAction.setAlpha(1.0f);
-            holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
+            holder.btnAction.setOnClickListener(v -> showStatusDropdown(v, task.getId(), task.getStatus()));
         } else if (isCompleted) {
             holder.btnAction.setImageResource(R.drawable.ic_edit);
             holder.btnAction.setAlpha(0.4f);
@@ -281,6 +279,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         View vStatusBar;
         TextView tvStatusBadge, tvDday, tvTaskTitle, tvAssigneeAvatar, tvAssigneeName;
         ImageButton btnAction;
+        final GradientDrawable avatarBg;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -291,6 +290,9 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             tvAssigneeAvatar  = itemView.findViewById(R.id.tv_assignee_avatar);
             tvAssigneeName    = itemView.findViewById(R.id.tv_assignee_name);
             btnAction         = itemView.findViewById(R.id.btn_action);
+            avatarBg = new GradientDrawable();
+            avatarBg.setShape(GradientDrawable.OVAL);
+            tvAssigneeAvatar.setBackground(avatarBg);
         }
     }
 }

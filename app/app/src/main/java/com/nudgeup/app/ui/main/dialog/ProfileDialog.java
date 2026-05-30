@@ -16,12 +16,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
+import com.nudgeup.app.util.ToastUtils;
+import com.nudgeup.app.data.repository.UserRepository;
 import com.nudgeup.app.ui.auth.LoginActivity;
 
 public class ProfileDialog extends DialogFragment {
@@ -57,6 +58,10 @@ public class ProfileDialog extends DialogFragment {
     private boolean isEditMode = false;
     private int     selectedColor;
     private String  currentName;
+
+    // ─── 의존성 ───
+    private final UserRepository userRepo = new UserRepository();
+    private Button btnSaveProfile;
 
     // ─── View 참조 ───
     private TextView    tvAvatar;
@@ -106,6 +111,8 @@ public class ProfileDialog extends DialogFragment {
         // ── 편집 버튼 (연필 ↔ X 토글) ──
         btnEditProfile.setOnClickListener(v -> toggleEditMode(prefs));
 
+        btnSaveProfile = view.findViewById(R.id.btn_save_profile);
+
         // ── 취소 버튼 ──
         view.findViewById(R.id.btn_cancel_edit).setOnClickListener(v -> {
             // 변경 사항 원상 복구
@@ -115,20 +122,99 @@ public class ProfileDialog extends DialogFragment {
         });
 
         // ── 저장 버튼 ──
-        view.findViewById(R.id.btn_save_profile).setOnClickListener(v -> {
+        btnSaveProfile.setOnClickListener(v -> {
             String newName = etDisplayName.getText().toString().trim();
             if (newName.isEmpty()) {
                 etDisplayName.setError("이름을 입력하세요");
                 return;
             }
+
+            boolean nameChanged = !newName.equals(currentName);
+            int savedColor = prefs.getInt(KEY_COLOR, DEFAULT_COLOR);
+            boolean colorChanged = (selectedColor != savedColor);
+
+            if (!nameChanged && !colorChanged) {
+                exitEditMode();
+                return;
+            }
+
+            btnSaveProfile.setEnabled(false);
+
+            // 색상은 서버 제한 없으므로 즉시 로컬 저장
+            if (colorChanged) {
+                prefs.edit().putInt(KEY_COLOR, selectedColor).apply();
+            }
+
+            // UI 낙관적 업데이트 (이름 표시만, prefs 저장은 API 성공 후)
+            String prevName = currentName;
             currentName = newName;
-            prefs.edit()
-                    .putString(KEY_NAME, currentName)
-                    .putInt(KEY_COLOR, selectedColor)
-                    .apply();
             refreshNameDisplay();
             exitEditMode();
-            Toast.makeText(requireContext(), "프로필이 저장됐습니다 ✓", Toast.LENGTH_SHORT).show();
+
+            final int[] pending = {(nameChanged ? 1 : 0) + (colorChanged ? 1 : 0)};
+            final boolean[] anyFailed = {false};
+
+            Runnable checkDone = () -> {
+                pending[0]--;
+                if (pending[0] == 0) {
+                    if (isAdded()) btnSaveProfile.setEnabled(true);
+                    if (!anyFailed[0] && isAdded()) {
+                        ToastUtils.show(requireContext(), "프로필이 저장됐습니다 ✓");
+                    }
+                }
+            };
+
+            if (nameChanged) {
+                final String nameToSave = newName;
+                userRepo.updateUsername(nameToSave).enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
+                                           retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> response) {
+                        if (response.isSuccessful()) {
+                            prefs.edit().putString(KEY_NAME, nameToSave).apply();
+                        } else {
+                            anyFailed[0] = true;
+                            currentName = prevName;
+                            if (isAdded()) {
+                                refreshNameDisplay();
+                                ToastUtils.show(requireContext(), "이름 변경 실패: 7일 이내 재변경 불가");
+                            }
+                        }
+                        checkDone.run();
+                    }
+                    @Override
+                    public void onFailure(retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call, Throwable t) {
+                        anyFailed[0] = true;
+                        currentName = prevName;
+                        if (isAdded()) {
+                            refreshNameDisplay();
+                            ToastUtils.show(requireContext(), "네트워크 오류");
+                        }
+                        checkDone.run();
+                    }
+                });
+            }
+
+            if (colorChanged) {
+                String colorHex = String.format("#%06X", 0xFFFFFF & selectedColor);
+                userRepo.updateColor(colorHex).enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
+                                           retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> response) {
+                        if (!response.isSuccessful()) {
+                            anyFailed[0] = true;
+                            if (isAdded()) ToastUtils.show(requireContext(), "색상 변경 실패");
+                        }
+                        checkDone.run();
+                    }
+                    @Override
+                    public void onFailure(retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call, Throwable t) {
+                        anyFailed[0] = true;
+                        if (isAdded()) ToastUtils.show(requireContext(), "네트워크 오류");
+                        checkDone.run();
+                    }
+                });
+            }
         });
 
         // ── 로그아웃 ──
