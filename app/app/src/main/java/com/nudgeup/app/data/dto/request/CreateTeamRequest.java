@@ -1,9 +1,9 @@
 package com.nudgeup.app.data.dto.request;
 
 public class CreateTeamRequest {
-    private String name;
+    private String teamName;
 
-    public CreateTeamRequest(String name) {
-        this.name = name;
+    public CreateTeamRequest(String teamName) {
+        this.teamName = teamName;
     }
 }

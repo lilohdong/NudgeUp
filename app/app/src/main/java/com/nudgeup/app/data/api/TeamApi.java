@@ -1,6 +1,7 @@
 package com.nudgeup.app.data.api;
 
 import com.nudgeup.app.data.dto.request.CreateTeamRequest;
+import com.nudgeup.app.data.dto.request.JoinTeamRequest;
 import com.nudgeup.app.data.dto.request.TeamSettingsRequest;
 import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.TeamDetailResponse;
@@ -28,4 +29,7 @@ public interface TeamApi {
     Call<ApiResponse<Void>> updateSettings(
             @Path("teamId") long teamId,
             @Body TeamSettingsRequest request);
+
+    @POST("teams/join")
+    Call<ApiResponse<TeamResponse>> joinTeam(@Body JoinTeamRequest request);
 }
