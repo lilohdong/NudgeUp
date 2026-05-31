@@ -7,9 +7,11 @@ import com.nudgeup.backend.domain.nudge.repository.NudgeLogRepository;
 import com.nudgeup.backend.domain.task.entity.Task;
 import com.nudgeup.backend.domain.task.entity.TaskStatus;
 import com.nudgeup.backend.domain.task.repository.TaskRepository;
+import com.nudgeup.backend.domain.team.entity.Team;
 import com.nudgeup.backend.domain.team.entity.TeamMember;
 import com.nudgeup.backend.domain.team.entity.TeamRole;
 import com.nudgeup.backend.domain.team.repository.TeamMemberRepository;
+import com.nudgeup.backend.domain.team.repository.TeamRepository;
 import com.nudgeup.backend.domain.user.dto.response.UserResponse;
 import com.nudgeup.backend.domain.user.entity.User;
 import com.nudgeup.backend.domain.user.repository.UserRepository;
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +38,7 @@ public class NudgeService {
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
     private final FcmService fcmService;
+    private final TeamRepository teamRepository;
 
     @Transactional
     public NudgeResponse sendNudge(Long userId, Long teamId, Long taskId) {
@@ -128,5 +132,39 @@ public class NudgeService {
                     return NudgeLogResponse.from(log, task.getTitle(), sentToResponse, sentByResponse);
                 })
                 .collect(Collectors.toList());
+    }
+
+    public List<NudgeLogResponse> getReceivedNudgeLogs(Long userId) {
+        List<NudgeLog> logs = nudgeLogRepository.findReceivedByUserId(userId);
+
+        return logs.stream()
+                .map(log -> {
+                    Task task = taskRepository.findById(log.getTaskId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
+                    User sentByUser = userRepository.findById(log.getSentById())
+                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    UserResponse sentByResponse = UserResponse.from(sentByUser);
+
+                    UserResponse sentToResponse = null;
+                    if (task.getAssigneeId() != null) {
+                        sentToResponse = userRepository.findById(task.getAssigneeId())
+                                .map(UserResponse::from).orElse(null);
+                    }
+
+                    String teamName = teamRepository.findById(task.getTeamId())
+                            .map(Team::getTeamName)
+                            .orElse("");
+
+                    return NudgeLogResponse.from(
+                            log, task.getTitle(),
+                            task.getTeamId(), teamName,
+                            sentToResponse, sentByResponse);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public long getReceivedNudgeCount(Long userId, int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        return nudgeLogRepository.countReceivedByUserIdSince(userId, since);
     }
 }

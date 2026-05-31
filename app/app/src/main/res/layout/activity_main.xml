@@ -286,12 +286,14 @@
                 android:paddingEnd="12dp"
                 android:background="@color/bg_dark">
 
-                <ImageView
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
+                <ImageButton
+                    android:id="@+id/btn_nudge_inbox"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:src="@drawable/ic_bell"
+                    android:background="@android:color/transparent"
                     android:scaleType="fitCenter"
-                    android:contentDescription="독촉 알림"/>
+                    android:contentDescription="독촉 알림 수신함"/>
 
                 <TextView
                     android:layout_width="wrap_content"

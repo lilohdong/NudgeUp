@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NudgeLogRepository extends JpaRepository<NudgeLog, Long> {
@@ -20,4 +21,15 @@ public interface NudgeLogRepository extends JpaRepository<NudgeLog, Long> {
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM NudgeLog n WHERE n.taskId IN :taskIds")
     void deleteByTaskIdIn(@Param("taskIds") List<Long> taskIds);
+
+    @Query("SELECT n FROM NudgeLog n WHERE n.taskId IN " +
+           "(SELECT t.id FROM Task t WHERE t.assigneeId = :userId) " +
+           "ORDER BY n.sentAt DESC")
+    List<NudgeLog> findReceivedByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(n) FROM NudgeLog n WHERE n.taskId IN " +
+           "(SELECT t.id FROM Task t WHERE t.assigneeId = :userId) " +
+           "AND n.sentAt >= :since")
+    long countReceivedByUserIdSince(@Param("userId") Long userId,
+                                    @Param("since") LocalDateTime since);
 }
