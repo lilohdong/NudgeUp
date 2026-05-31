@@ -159,7 +159,8 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             String initial = (name != null && !name.isEmpty())
                     ? String.valueOf(name.charAt(0)) : "?";
             holder.tvAssigneeAvatar.setText(initial);
-            int avatarColor = AVATAR_COLORS[(int)(task.getAssignee().getId() % AVATAR_COLORS.length)];
+            int fallback = AVATAR_COLORS[(int)(task.getAssignee().getId() % AVATAR_COLORS.length)];
+            int avatarColor = parseColor(task.getAssignee().getColor(), fallback);
             holder.avatarBg.setColor(avatarColor);
             holder.tvAssigneeName.setText(name);
         } else {
@@ -321,6 +322,15 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
     private int dpToPx(Context context, int dp) {
         return Math.round(dp * context.getResources().getDisplayMetrics().density);
+    }
+
+    private int parseColor(String colorHex, int fallback) {
+        if (colorHex != null && !colorHex.isEmpty()) {
+            try {
+                return android.graphics.Color.parseColor(colorHex);
+            } catch (Exception ignored) {}
+        }
+        return fallback;
     }
 
     // ─────────────────────────────────────────

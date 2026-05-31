@@ -284,8 +284,8 @@ public class MainViewModel extends ViewModel {
         });
     }
 
-    public void createTeam(String name) {
-        teamRepository.createTeam(name).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
+    public void createTeam(String name, String colorHex) {
+        teamRepository.createTeam(name, colorHex).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<TeamDetailResponse>> call, Response<ApiResponse<TeamDetailResponse>> response) {
                 if (response.isSuccessful()) loadTeams();

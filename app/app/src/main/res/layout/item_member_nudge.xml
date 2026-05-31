@@ -55,4 +55,16 @@
         app:thumbTint="@color/color_lime"
         app:trackTint="@color/color_border"/>
 
+    <!-- 추방 버튼 (팀장 모드에서만 표시) -->
+    <ImageButton
+        android:id="@+id/btn_kick"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_close"
+        android:background="@android:color/transparent"
+        android:scaleType="center"
+        android:visibility="gone"
+        android:contentDescription="추방"/>
+
 </LinearLayout>

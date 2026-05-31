@@ -23,8 +23,8 @@ public class TeamRepository {
         return teamApi.getMyTeams();
     }
 
-    public Call<ApiResponse<TeamDetailResponse>> createTeam(String name) {
-        return teamApi.createTeam(new CreateTeamRequest(name));
+    public Call<ApiResponse<TeamDetailResponse>> createTeam(String name, String color) {
+        return teamApi.createTeam(new CreateTeamRequest(name, color));
     }
 
     public Call<ApiResponse<TeamDetailResponse>> getTeamDetail(long teamId) {
@@ -37,5 +37,13 @@ public class TeamRepository {
 
     public Call<ApiResponse<TeamResponse>> joinTeam(String inviteCode) {
         return teamApi.joinTeam(new JoinTeamRequest(inviteCode));
+    }
+
+    public Call<ApiResponse<Void>> leaveTeam(long teamId) {
+        return teamApi.leaveTeam(teamId);
+    }
+
+    public Call<ApiResponse<Void>> kickMember(long teamId, long memberId) {
+        return teamApi.kickMember(teamId, memberId);
     }
 }
