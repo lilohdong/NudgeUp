@@ -64,7 +64,7 @@ public class Task {
     }
 
     public void changeStatus(TaskStatus newStatus) {
-        if (this.status == TaskStatus.COMPLETED) {
+        if (this.status == TaskStatus.COMPLETED && newStatus != TaskStatus.IN_PROGRESS) {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
         if (newStatus == TaskStatus.IN_PROGRESS) {
