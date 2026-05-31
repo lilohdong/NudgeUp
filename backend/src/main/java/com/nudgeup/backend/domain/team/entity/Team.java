@@ -25,15 +25,19 @@ public class Team {
     @Column(name = "invite_code", nullable = false, unique = true, length = 20)
     private String inviteCode;
 
+    @Column(name = "color", length = 10)
+    private String color;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public Team(String teamName, Long leaderId, String inviteCode) {
+    public Team(String teamName, Long leaderId, String inviteCode, String color) {
         this.teamName = teamName;
         this.leaderId = leaderId;
         this.inviteCode = inviteCode;
+        this.color = color != null ? color : "#7B3FE4";
     }
 
     public void updateLeader(Long newLeaderId) {

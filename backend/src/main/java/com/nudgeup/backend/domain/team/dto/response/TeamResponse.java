@@ -18,4 +18,5 @@ public class TeamResponse {
     private int memberCount;
     private TeamRole myRole;
     private String createdAt;
+    private String color;
 }
