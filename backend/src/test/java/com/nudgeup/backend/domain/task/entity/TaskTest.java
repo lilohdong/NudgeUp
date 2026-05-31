@@ -60,9 +60,20 @@ class TaskTest {
 
     @Test
     void 최초_진행중_전환_시만_startedAt이_설정된다() {
-        Task task = makeTask(TaskStatus.COMPLETED);
-        LocalDateTime originalStartedAt = task.getStartedAt();
+        // PENDING 상태 작업: startedAt이 null
+        Task task = makeTask(TaskStatus.PENDING);
+        assertThat(task.getStartedAt()).isNull();
+
+        // 최초 IN_PROGRESS 전환: startedAt 설정됨
         task.changeStatus(TaskStatus.IN_PROGRESS);
-        assertThat(task.getStartedAt()).isEqualTo(originalStartedAt);
+        LocalDateTime firstStartedAt = task.getStartedAt();
+        assertThat(firstStartedAt).isNotNull();
+
+        // COMPLETED로 전환 후 IN_PROGRESS로 복구
+        task.changeStatus(TaskStatus.COMPLETED);
+        task.changeStatus(TaskStatus.IN_PROGRESS);
+
+        // startedAt이 최초 값 그대로 보존되어야 함
+        assertThat(task.getStartedAt()).isEqualTo(firstStartedAt);
     }
 }
