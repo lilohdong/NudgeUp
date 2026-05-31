@@ -203,7 +203,7 @@
 
     </ScrollView>
 
-    <!-- 하단 버튼 (임시 저장 / 작업 생성) -->
+    <!-- 하단 버튼 (취소 / 작업 생성) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -216,7 +216,7 @@
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
-            android:text="임시 저장"
+            android:text="취소"
             android:textColor="@color/color_lime"
             android:textSize="14sp"
             android:textStyle="bold"

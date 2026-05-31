@@ -32,7 +32,10 @@
         <activity android:name=".ui.auth.FindIdActivity" android:exported="false" />
         <activity android:name=".ui.auth.FindPasswordActivity" android:exported="false" />
         <activity android:name=".ui.main.MainActivity" android:exported="false" />
-        <activity android:name=".ui.task.CreateTaskActivity" android:exported="false" />
+        <activity
+            android:name=".ui.task.CreateTaskActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
         <activity android:name=".ui.team.TeamSettingsActivity" android:exported="false" />
         <activity android:name=".ui.team.CreateTeamActivity" android:exported="false" />
         <activity android:name=".ui.nudge.NudgeInboxActivity" android:exported="false" />

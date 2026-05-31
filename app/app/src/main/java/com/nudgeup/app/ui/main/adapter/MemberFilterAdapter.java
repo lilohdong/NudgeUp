@@ -93,6 +93,7 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
         holder.tvName.setText(name);
         holder.tvName.setTextColor(isSelected ? 0xFFD4FF00 : 0xFF8888AA);
 
+        final int pos = position;
         holder.itemView.setOnClickListener(v -> {
             if (selectedId == item.id) return; // 이미 선택된 경우 무시
             long prevId = selectedId;
@@ -102,7 +103,7 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
                 if (items.get(i).id == prevId) { notifyItemChanged(i); break; }
             }
             // 새 선택 아이템 갱신
-            notifyItemChanged(holder.getAdapterPosition());
+            notifyItemChanged(pos);
             listener.onFilter(item.id);
         });
     }

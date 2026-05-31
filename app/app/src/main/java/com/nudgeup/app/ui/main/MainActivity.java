@@ -145,8 +145,11 @@ public class MainActivity extends AppCompatActivity {
 
         btnJoinTeamEmpty.setOnClickListener(v -> showJoinTeamDialog());
 
-        btnMy.setOnClickListener(v ->
-                ProfileDialog.newInstance().show(getSupportFragmentManager(), "profile"));
+        btnMy.setOnClickListener(v -> {
+            if (getSupportFragmentManager().findFragmentByTag("profile") == null) {
+                ProfileDialog.newInstance().show(getSupportFragmentManager(), "profile");
+            }
+        });
 
         btnNudgeInbox.setOnClickListener(v ->
                 startActivity(new Intent(this, NudgeInboxActivity.class)));

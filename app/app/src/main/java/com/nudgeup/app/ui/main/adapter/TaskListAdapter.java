@@ -346,8 +346,14 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
                 @Override
                 public boolean areContentsTheSame(@NonNull TaskResponse o, @NonNull TaskResponse n) {
-                    return o.getStatus() != null && o.getStatus().equals(n.getStatus())
-                            && o.getTitle() != null && o.getTitle().equals(n.getTitle());
+                    boolean statusSame  = o.getStatus() != null && o.getStatus().equals(n.getStatus());
+                    boolean titleSame   = o.getTitle() != null && o.getTitle().equals(n.getTitle());
+                    boolean dueDateSame = o.getDueDate() == null
+                            ? n.getDueDate() == null
+                            : o.getDueDate().equals(n.getDueDate());
+                    long oldAssigneeId = o.getAssignee() != null ? o.getAssignee().getId() : -1L;
+                    long newAssigneeId = n.getAssignee() != null ? n.getAssignee().getId() : -1L;
+                    return statusSame && titleSame && dueDateSame && (oldAssigneeId == newAssigneeId);
                 }
             };
 

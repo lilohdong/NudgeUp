@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDialog;
 import androidx.fragment.app.DialogFragment;
 import com.nudgeup.app.NudgeUpApplication;
 import com.nudgeup.app.R;
@@ -66,7 +68,6 @@ public class ProfileDialog extends DialogFragment {
     private String  currentName;
 
     // ─── 의존성 ───
-    private final UserRepository userRepo = new UserRepository();
     private Button btnSaveProfile;
 
     // ─── View 참조 ───
@@ -79,6 +80,12 @@ public class ProfileDialog extends DialogFragment {
     private FrameLayout  flAvatarEditBadge;
     private ImageButton  btnEditProfile;
     private com.nudgeup.app.data.repository.UserRepository userRepository;
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        return new AppCompatDialog(requireContext(), getTheme());
+    }
 
     @Nullable
     @Override
@@ -193,7 +200,7 @@ public class ProfileDialog extends DialogFragment {
 
             if (nameChanged) {
                 final String nameToSave = newName;
-                userRepo.updateUsername(nameToSave).enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
+                userRepository.updateUsername(nameToSave).enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
                     @Override
                     public void onResponse(retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
                                            retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> response) {
@@ -224,7 +231,7 @@ public class ProfileDialog extends DialogFragment {
 
             if (colorChanged) {
                 String colorHex = String.format("#%06X", 0xFFFFFF & selectedColor);
-                userRepo.updateColor(colorHex).enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
+                userRepository.updateColor(colorHex).enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
                     @Override
                     public void onResponse(retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
                                            retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> response) {
@@ -278,7 +285,7 @@ public class ProfileDialog extends DialogFragment {
             confirmView.findViewById(R.id.btn_dialog_confirm)
                     .setOnClickListener(btn -> {
                         confirmDialog.dismiss();
-                        userRepo.deleteMe().enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<Void>>() {
+                        userRepository.deleteMe().enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<Void>>() {
                             @Override
                             public void onResponse(
                                     retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<Void>> call,
@@ -470,10 +477,12 @@ public class ProfileDialog extends DialogFragment {
         super.onStart();
         Dialog dialog = getDialog();
         if (dialog != null && dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             int widthPx = (int)(requireContext().getResources()
                     .getDisplayMetrics().widthPixels * 0.88f);
             dialog.getWindow().setLayout(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setGravity(Gravity.CENTER);
         }
     }
 }
