@@ -69,15 +69,17 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TaskResponse task = getItem(position);
         long dday        = calcDday(task.getDueDate());
-        boolean isUrgent    = !"COMPLETED".equals(task.getStatus()) && dday <= 3;
+        boolean isUrgent    = !"COMPLETED".equals(task.getStatus()) && dday >= 0 && dday <= 3;
+        boolean isOverdue   = !"COMPLETED".equals(task.getStatus()) && dday < 0;
         boolean isCompleted = "COMPLETED".equals(task.getStatus());
 
         // ── 상태 바 색상 ──
         int statusColor;
-        if (isCompleted)                              statusColor = 0xFF2ECC71;
-        else if (isUrgent)                            statusColor = 0xFFFF6B35;
+        if (isCompleted)                                 statusColor = 0xFF2ECC71;
+        else if (isOverdue)                              statusColor = 0xFFFF6B35;
+        else if (isUrgent)                               statusColor = 0xFFFF6B35;
         else if ("IN_PROGRESS".equals(task.getStatus())) statusColor = 0xFF7B3FE4;
-        else                                          statusColor = 0xFF4A4A6A;
+        else                                             statusColor = 0xFF4A4A6A;
         holder.vStatusBar.setBackgroundColor(statusColor);
 
         // ── 상태 배지 ──
@@ -88,6 +90,10 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             badgeText      = "완료";
             badgeTextColor = 0xFF2ECC71;
             badgeBgRes     = R.drawable.bg_badge_complete;
+        } else if (isOverdue) {
+            badgeText      = "기한초과";
+            badgeTextColor = 0xFFFF6B35;
+            badgeBgRes     = R.drawable.bg_badge_urgent;
         } else if (isUrgent) {
             badgeText      = "마감임박";
             badgeTextColor = 0xFFFF6B35;
