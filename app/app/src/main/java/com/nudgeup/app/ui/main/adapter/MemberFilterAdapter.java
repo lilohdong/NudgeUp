@@ -32,7 +32,8 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
     private static class Item {
         long id;
         String name;
-        Item(long id, String name) { this.id = id; this.name = name; }
+        String color;
+        Item(long id, String name, String color) { this.id = id; this.name = name; this.color = color; }
     }
 
     private final List<Item> items = new ArrayList<>();
@@ -41,14 +42,14 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
 
     public MemberFilterAdapter(OnMemberFilterListener listener) {
         this.listener = listener;
-        items.add(new Item(-1L, "전체"));
+        items.add(new Item(-1L, "전체", null));
     }
 
     public void setMembers(List<MemberResponse> memberList) {
         items.clear();
-        items.add(new Item(-1L, "전체"));
+        items.add(new Item(-1L, "전체", null));
         for (MemberResponse m : memberList) {
-            items.add(new Item(m.getUserId(), m.getName()));
+            items.add(new Item(m.getUserId(), m.getName(), m.getColor()));
         }
         notifyDataSetChanged();
     }
@@ -71,8 +72,10 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
         holder.tvAvatar.setText(initial);
 
         // 아바타 색상: 선택된 경우 밝게, 아닌 경우 어둡게
-        int colorIndex = item.id == -1 ? 0 : (int)(item.id % (AVATAR_COLORS.length - 1)) + 1;
-        int baseColor = AVATAR_COLORS[colorIndex];
+        int fallbackIndex = item.id == -1 ? 0 : (int)(item.id % (AVATAR_COLORS.length - 1)) + 1;
+        int baseColor = item.id == -1
+                ? AVATAR_COLORS[0]
+                : parseColor(item.color, AVATAR_COLORS[fallbackIndex]);
 
         if (isSelected) {
             holder.avatarBg.setColor(baseColor);
@@ -107,6 +110,15 @@ public class MemberFilterAdapter extends RecyclerView.Adapter<MemberFilterAdapte
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    private int parseColor(String colorHex, int fallback) {
+        if (colorHex != null && !colorHex.isEmpty()) {
+            try {
+                return android.graphics.Color.parseColor(colorHex);
+            } catch (Exception ignored) {}
+        }
+        return fallback;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

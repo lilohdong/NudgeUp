@@ -39,6 +39,7 @@ public class TeamService {
                 .teamName(request.getTeamName())
                 .leaderId(userId)
                 .inviteCode(inviteCode)
+                .color(request.getColor())
                 .build());
         TeamMember member = teamMemberRepository.save(TeamMember.builder()
                 .teamId(team.getId())
@@ -62,6 +63,7 @@ public class TeamService {
                             .memberCount(memberCount)
                             .myRole(membership.getRole())
                             .createdAt(team.getCreatedAt().toString())
+                            .color(team.getColor())
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -112,6 +114,7 @@ public class TeamService {
                 .memberCount(memberCount)
                 .myRole(TeamRole.MEMBER)
                 .createdAt(team.getCreatedAt().toString())
+                .color(team.getColor())
                 .build();
     }
 

@@ -23,8 +23,8 @@ public class TeamRepository {
         return teamApi.getMyTeams();
     }
 
-    public Call<ApiResponse<TeamDetailResponse>> createTeam(String name) {
-        return teamApi.createTeam(new CreateTeamRequest(name));
+    public Call<ApiResponse<TeamDetailResponse>> createTeam(String name, String color) {
+        return teamApi.createTeam(new CreateTeamRequest(name, color));
     }
 
     public Call<ApiResponse<TeamDetailResponse>> getTeamDetail(long teamId) {

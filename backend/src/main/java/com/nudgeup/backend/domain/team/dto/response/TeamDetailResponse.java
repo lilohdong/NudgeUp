@@ -16,6 +16,7 @@ public class TeamDetailResponse {
     private String inviteCode;
     private String inviteLink;
     private String createdAt;
+    private String color;
     private List<TeamMemberResponse> members;
 
     public static TeamDetailResponse from(Team team, List<TeamMemberResponse> members) {
@@ -26,6 +27,7 @@ public class TeamDetailResponse {
                 .inviteCode(team.getInviteCode())
                 .inviteLink("nudgeup://join?code=" + team.getInviteCode())
                 .createdAt(team.getCreatedAt().toString())
+                .color(team.getColor())
                 .members(members)
                 .build();
     }

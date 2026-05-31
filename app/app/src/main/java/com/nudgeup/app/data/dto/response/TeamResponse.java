@@ -10,6 +10,7 @@ public class TeamResponse {
     private long leaderId;
     private int memberCount;
     private String myRole;
+    private String color;
 
     public TeamResponse() {}
 
@@ -23,4 +24,5 @@ public class TeamResponse {
     public long getLeaderId() { return leaderId; }
     public int getMemberCount() { return memberCount; }
     public String getMyRole() { return myRole; }
+    public String getColor() { return color; }
 }

@@ -113,7 +113,8 @@ public class CreateTeamActivity extends AppCompatActivity {
                 return;
             }
             btnCreate.setEnabled(false);
-            viewModel.createTeam(name);
+            String colorHex = String.format("#%06X", 0xFFFFFF & selectedColor);
+            viewModel.createTeam(name, colorHex);
         });
     }
 }

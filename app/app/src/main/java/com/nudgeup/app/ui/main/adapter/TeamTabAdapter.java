@@ -56,7 +56,7 @@ public class TeamTabAdapter {
             tvInitial.setText(initial);
 
             // 아바타 색상
-            int color = TEAM_COLORS[i % TEAM_COLORS.length];
+            int color = parseColor(team.getColor(), TEAM_COLORS[i % TEAM_COLORS.length]);
             GradientDrawable avatarBg = new GradientDrawable();
             avatarBg.setShape(GradientDrawable.OVAL);
             avatarBg.setColor(color);
@@ -78,5 +78,14 @@ public class TeamTabAdapter {
 
             container.addView(tabView);
         }
+    }
+
+    private int parseColor(String colorHex, int fallback) {
+        if (colorHex != null && !colorHex.isEmpty()) {
+            try {
+                return android.graphics.Color.parseColor(colorHex);
+            } catch (Exception ignored) {}
+        }
+        return fallback;
     }
 }
