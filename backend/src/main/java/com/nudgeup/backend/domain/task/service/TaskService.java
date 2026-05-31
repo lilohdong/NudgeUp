@@ -117,10 +117,14 @@ public class TaskService {
         TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
 
-        boolean isAssignee = userId.equals(task.getAssigneeId());
-        boolean isLeader = member.getRole() == TeamRole.LEADER;
+        boolean isAssignee  = userId.equals(task.getAssigneeId());
+        boolean isCreatedBy = userId.equals(task.getCreatedById());
+        boolean isLeader    = member.getRole() == TeamRole.LEADER;
 
-        if (!isAssignee && !isLeader) {
+        boolean isCancelRequest = request.getStatus() == TaskStatus.CANCELLED;
+        boolean hasPermission = isAssignee || isLeader || (isCancelRequest && isCreatedBy);
+
+        if (!hasPermission) {
             throw new CustomException(ErrorCode.NO_TASK_PERMISSION);
         }
 
