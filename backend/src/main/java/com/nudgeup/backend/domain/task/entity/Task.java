@@ -47,6 +47,9 @@ public class Task {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -64,7 +67,12 @@ public class Task {
     }
 
     public void changeStatus(TaskStatus newStatus) {
-        if (this.status == TaskStatus.COMPLETED && newStatus != TaskStatus.IN_PROGRESS) {
+        if (this.status == TaskStatus.CANCELLED) {
+            throw new CustomException(ErrorCode.TASK_ALREADY_CANCELLED);
+        }
+        if (this.status == TaskStatus.COMPLETED
+                && newStatus != TaskStatus.IN_PROGRESS
+                && newStatus != TaskStatus.CANCELLED) {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
         if (newStatus == TaskStatus.IN_PROGRESS) {
@@ -74,6 +82,8 @@ public class Task {
             this.completedAt = null;
         } else if (newStatus == TaskStatus.COMPLETED) {
             this.completedAt = LocalDateTime.now();
+        } else if (newStatus == TaskStatus.CANCELLED) {
+            this.cancelledAt = LocalDateTime.now();
         }
         this.status = newStatus;
     }
