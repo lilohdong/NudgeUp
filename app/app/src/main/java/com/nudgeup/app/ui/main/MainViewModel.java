@@ -223,8 +223,6 @@ public class MainViewModel extends ViewModel {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful()) {
-                    Integer count = nudgeCount.getValue();
-                    nudgeCount.setValue(count == null ? 1 : count + 1);
                     nudgeResult.setValue(true);
                 } else {
                     nudgeResult.setValue(false);

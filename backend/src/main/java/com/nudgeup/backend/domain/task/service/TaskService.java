@@ -69,7 +69,7 @@ public class TaskService {
 
         List<Task> tasks = status != null
                 ? taskRepository.findByTeamIdAndStatus(teamId, status)
-                : taskRepository.findByTeamId(teamId);
+                : taskRepository.findByTeamIdAndStatusNot(teamId, TaskStatus.CANCELLED);
 
         return tasks.stream()
                 .map(task -> {
@@ -90,7 +90,7 @@ public class TaskService {
 
         List<Task> tasks = status != null
                 ? taskRepository.findByTeamIdAndAssigneeIdAndStatus(teamId, userId, status)
-                : taskRepository.findByTeamIdAndAssigneeId(teamId, userId);
+                : taskRepository.findByTeamIdAndAssigneeIdAndStatusNot(teamId, userId, TaskStatus.CANCELLED);
 
         return tasks.stream()
                 .map(task -> {
