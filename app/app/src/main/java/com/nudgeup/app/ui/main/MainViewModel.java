@@ -145,7 +145,13 @@ public class MainViewModel extends ViewModel {
                                    Response<ApiResponse<List<TaskResponse>>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     List<TaskResponse> data = response.body().getData();
-                    myTasks.setValue(sortTasksStatic(data != null ? data : new ArrayList<>(), myTasksSortMode));
+                    List<TaskResponse> filtered = new ArrayList<>();
+                    if (data != null) {
+                        for (TaskResponse t : data) {
+                            if (!"CANCELLED".equals(t.getStatus())) filtered.add(t);
+                        }
+                    }
+                    myTasks.setValue(sortTasksStatic(filtered, myTasksSortMode));
                 }
             }
             @Override
@@ -180,15 +186,13 @@ public class MainViewModel extends ViewModel {
     }
 
     private void applyFilter() {
-        List<TaskResponse> filtered;
-        if (selectedMemberId == -1L) {
-            filtered = new ArrayList<>(allTasksCache);
-        } else {
-            filtered = new ArrayList<>();
-            for (TaskResponse t : allTasksCache) {
-                if (t.getAssignee() != null && t.getAssignee().getId() == selectedMemberId) {
-                    filtered.add(t);
-                }
+        List<TaskResponse> filtered = new ArrayList<>();
+        for (TaskResponse t : allTasksCache) {
+            if ("CANCELLED".equals(t.getStatus())) continue;
+            if (selectedMemberId == -1L) {
+                filtered.add(t);
+            } else if (t.getAssignee() != null && t.getAssignee().getId() == selectedMemberId) {
+                filtered.add(t);
             }
         }
         teamTasks.setValue(sortTasksStatic(filtered, teamTasksSortMode));
@@ -236,7 +240,31 @@ public class MainViewModel extends ViewModel {
     }
 
     public void cancelTask(long taskId) {
-        updateTaskStatus(taskId, "CANCELLED");
+        // 낙관적 업데이트: 즉시 캐시에서 제거해 UI에 바로 반영
+        allTasksCache.removeIf(t -> t.getId() == taskId);
+        applyFilter();
+        List<TaskResponse> currentMyTasks = myTasks.getValue();
+        if (currentMyTasks != null) {
+            List<TaskResponse> updated = new ArrayList<>(currentMyTasks);
+            updated.removeIf(t -> t.getId() == taskId);
+            myTasks.setValue(updated);
+        }
+
+        TeamResponse team = currentTeam.getValue();
+        if (team == null) return;
+        taskRepository.updateStatus(team.getId(), taskId, "CANCELLED").enqueue(new Callback<ApiResponse<TaskResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<TaskResponse>> call, Response<ApiResponse<TaskResponse>> response) {
+                if (!response.isSuccessful()) {
+                    // 서버 실패 시 실제 상태로 복원
+                    loadTasks(team.getId());
+                }
+            }
+            @Override
+            public void onFailure(Call<ApiResponse<TaskResponse>> call, Throwable t) {
+                loadTasks(team.getId());
+            }
+        });
     }
 
     public void updateTaskStatus(long taskId, String newStatus) {
