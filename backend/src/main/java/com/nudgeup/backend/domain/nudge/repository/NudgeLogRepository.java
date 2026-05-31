@@ -17,7 +17,7 @@ public interface NudgeLogRepository extends JpaRepository<NudgeLog, Long> {
     @Query("SELECT n FROM NudgeLog n WHERE n.taskId IN :taskIds ORDER BY n.sentAt DESC")
     List<NudgeLog> findByTaskIdIn(@Param("taskIds") List<Long> taskIds);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("DELETE FROM NudgeLog n WHERE n.taskId IN :taskIds")
     void deleteByTaskIdIn(@Param("taskIds") List<Long> taskIds);
 }
