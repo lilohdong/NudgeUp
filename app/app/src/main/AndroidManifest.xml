@@ -35,6 +35,7 @@
         <activity android:name=".ui.task.CreateTaskActivity" android:exported="false" />
         <activity android:name=".ui.team.TeamSettingsActivity" android:exported="false" />
         <activity android:name=".ui.team.CreateTeamActivity" android:exported="false" />
+        <activity android:name=".ui.nudge.NudgeInboxActivity" android:exported="false" />
 
         <!-- FCM 수신 서비스 -->
         <service
