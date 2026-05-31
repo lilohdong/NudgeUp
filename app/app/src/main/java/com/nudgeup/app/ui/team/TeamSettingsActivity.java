@@ -39,6 +39,9 @@ public class TeamSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_team_settings);
 
         teamId = getIntent().getLongExtra("teamId", -1);
+        String myRole = getIntent().getStringExtra("myRole");
+        boolean isLeader = "LEADER".equals(myRole);
+
         viewModel = new ViewModelProvider(this, new TeamSettingsViewModel.Factory()).get(TeamSettingsViewModel.class);
 
         View btnClose             = findViewById(R.id.btn_close);
@@ -48,6 +51,18 @@ public class TeamSettingsActivity extends AppCompatActivity {
         tvInviteCode              = findViewById(R.id.tv_invite_code);
         ImageButton btnCopyInvite = findViewById(R.id.btn_copy_invite);
         RecyclerView rvMembers    = findViewById(R.id.rv_members);
+
+        TextView tvTitle = findViewById(R.id.tv_title);
+        if (tvTitle != null) tvTitle.setText(isLeader ? "팀 설정" : "팀 정보");
+
+        View layoutLeaderSettings = findViewById(R.id.layout_leader_settings);
+        if (layoutLeaderSettings != null) {
+            layoutLeaderSettings.setVisibility(isLeader ? View.VISIBLE : View.GONE);
+        }
+        View layoutMemberReadonly = findViewById(R.id.layout_member_readonly);
+        if (layoutMemberReadonly != null) {
+            layoutMemberReadonly.setVisibility(isLeader ? View.GONE : View.VISIBLE);
+        }
 
         rvMembers.setLayoutManager(new LinearLayoutManager(this));
 
@@ -84,9 +99,33 @@ public class TeamSettingsActivity extends AppCompatActivity {
             }
 
             // 독촉 권한 RecyclerView
+            MemberNudgeAdapter.OnKickListener kickCb = isLeader ? (memberId, memberName) -> {
+                android.view.View confirmView = getLayoutInflater()
+                        .inflate(R.layout.dialog_delete_task, null);
+                ((android.widget.TextView) confirmView.findViewById(R.id.tv_dialog_title))
+                        .setText("팀원 추방");
+                ((android.widget.TextView) confirmView.findViewById(R.id.tv_dialog_message))
+                        .setText(memberName + "님을 팀에서 추방하시겠습니까?");
+                ((android.widget.TextView) confirmView.findViewById(R.id.btn_dialog_confirm))
+                        .setText("추방");
+                android.app.AlertDialog d = new android.app.AlertDialog.Builder(TeamSettingsActivity.this)
+                        .setView(confirmView).create();
+                if (d.getWindow() != null) d.getWindow().setBackgroundDrawable(
+                        new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+                confirmView.findViewById(R.id.btn_dialog_cancel)
+                        .setOnClickListener(btn -> d.dismiss());
+                confirmView.findViewById(R.id.btn_dialog_confirm)
+                        .setOnClickListener(btn -> {
+                            d.dismiss();
+                            viewModel.kickMember(teamId, memberId);
+                        });
+                d.show();
+            } : null;
+
             if (memberNudgeAdapter == null) {
                 memberNudgeAdapter = new MemberNudgeAdapter(members,
-                        (userId, canNudge) -> viewModel.setNudgePermission(userId, canNudge));
+                        (userId, canNudge) -> viewModel.setNudgePermission(userId, canNudge),
+                        kickCb);
                 rvMembers.setAdapter(memberNudgeAdapter);
             } else {
                 memberNudgeAdapter.setMembers(members);
@@ -105,6 +144,45 @@ public class TeamSettingsActivity extends AppCompatActivity {
         });
 
         btnSave.setOnClickListener(v -> viewModel.saveSettings(teamId));
+
+        Button btnLeaveTeam = findViewById(R.id.btn_leave_team);
+        if (btnLeaveTeam != null) {
+            btnLeaveTeam.setOnClickListener(v -> {
+                android.view.View confirmView = getLayoutInflater().inflate(R.layout.dialog_delete_task, null);
+                ((android.widget.TextView) confirmView.findViewById(R.id.tv_dialog_title))
+                        .setText("팀 탈퇴");
+                ((android.widget.TextView) confirmView.findViewById(R.id.tv_dialog_message))
+                        .setText("정말 이 팀에서 탈퇴하시겠습니까?");
+                ((android.widget.TextView) confirmView.findViewById(R.id.btn_dialog_confirm))
+                        .setText("탈퇴");
+                android.app.AlertDialog confirmDialog = new android.app.AlertDialog.Builder(this)
+                        .setView(confirmView).create();
+                if (confirmDialog.getWindow() != null) {
+                    confirmDialog.getWindow().setBackgroundDrawable(
+                            new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+                }
+                confirmView.findViewById(R.id.btn_dialog_cancel)
+                        .setOnClickListener(btn -> confirmDialog.dismiss());
+                confirmView.findViewById(R.id.btn_dialog_confirm)
+                        .setOnClickListener(btn -> {
+                            confirmDialog.dismiss();
+                            viewModel.leaveTeam(teamId);
+                        });
+                confirmDialog.show();
+            });
+        }
+
+        viewModel.getLeaveResult().observe(this, success -> {
+            if (Boolean.TRUE.equals(success)) {
+                setResult(RESULT_OK);
+                finish();
+            }
+        });
+
+        viewModel.getLeaveError().observe(this, msg -> {
+            if (msg != null) com.nudgeup.app.util.ToastUtils.show(this, msg);
+        });
+
         viewModel.loadMembers(teamId);
     }
 

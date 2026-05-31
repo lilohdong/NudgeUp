@@ -4,6 +4,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
@@ -18,6 +19,10 @@ public class MemberNudgeAdapter extends RecyclerView.Adapter<MemberNudgeAdapter.
         void onChange(long userId, boolean canNudge);
     }
 
+    public interface OnKickListener {
+        void onKick(long memberId, String memberName);
+    }
+
     private static final int[] AVATAR_COLORS = {
         0xFF7B3FE4, // purple
         0xFF3498DB, // blue
@@ -29,10 +34,17 @@ public class MemberNudgeAdapter extends RecyclerView.Adapter<MemberNudgeAdapter.
 
     private List<MemberResponse> members;
     private final OnNudgePermissionChangeListener listener;
+    private final OnKickListener kickListener;
 
     public MemberNudgeAdapter(List<MemberResponse> members, OnNudgePermissionChangeListener listener) {
+        this(members, listener, null);
+    }
+
+    public MemberNudgeAdapter(List<MemberResponse> members, OnNudgePermissionChangeListener listener,
+                               OnKickListener kickListener) {
         this.members = members;
         this.listener = listener;
+        this.kickListener = kickListener;
     }
 
     public void setMembers(List<MemberResponse> members) {
@@ -80,6 +92,15 @@ public class MemberNudgeAdapter extends RecyclerView.Adapter<MemberNudgeAdapter.
             holder.swCanNudge.setOnCheckedChangeListener((btn, checked) ->
                     listener.onChange(member.getUserId(), checked));
         }
+
+        // 추방 버튼 (팀장 모드에서 팀원에게만 표시)
+        if (kickListener != null && !isLeader) {
+            holder.btnKick.setVisibility(View.VISIBLE);
+            holder.btnKick.setOnClickListener(v ->
+                    kickListener.onKick(member.getUserId(), member.getName()));
+        } else {
+            holder.btnKick.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -90,6 +111,7 @@ public class MemberNudgeAdapter extends RecyclerView.Adapter<MemberNudgeAdapter.
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvAvatar, tvName, tvRole;
         SwitchCompat swCanNudge;
+        ImageButton btnKick;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -97,6 +119,7 @@ public class MemberNudgeAdapter extends RecyclerView.Adapter<MemberNudgeAdapter.
             tvName = itemView.findViewById(R.id.tv_member_name);
             tvRole = itemView.findViewById(R.id.tv_member_role);
             swCanNudge = itemView.findViewById(R.id.sw_can_nudge);
+            btnKick = itemView.findViewById(R.id.btn_kick);
         }
     }
 }
