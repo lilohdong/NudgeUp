@@ -214,6 +214,10 @@ public class MainViewModel extends ViewModel {
         });
     }
 
+    public void cancelTask(long taskId) {
+        updateTaskStatus(taskId, "CANCELLED");
+    }
+
     public void updateTaskStatus(long taskId, String newStatus) {
         TeamResponse team = currentTeam.getValue();
         if (team == null) return;

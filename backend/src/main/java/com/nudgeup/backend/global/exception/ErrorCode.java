@@ -32,6 +32,7 @@ public enum ErrorCode {
     // Task
     TASK_NOT_FOUND(404, "작업을 찾을 수 없습니다."),
     TASK_ALREADY_COMPLETED(400, "이미 완료된 작업입니다."),
+    TASK_ALREADY_CANCELLED(400, "이미 폐기된 작업입니다."),
     NO_TASK_PERMISSION(403, "담당자 또는 팀장만 상태를 변경할 수 있습니다."),
 
     // Nudge
