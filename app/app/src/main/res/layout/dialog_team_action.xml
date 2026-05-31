@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="팀 참가"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btn_create_team"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="새 팀 만들기"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_lime_text"
+        android:background="@drawable/bg_btn_lime"
+        android:layout_marginBottom="10dp"/>
+
+    <Button
+        android:id="@+id/btn_join_with_code"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="초대 코드로 입장"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_lime"
+        android:background="@drawable/bg_btn_outline"/>
+
+</LinearLayout>
