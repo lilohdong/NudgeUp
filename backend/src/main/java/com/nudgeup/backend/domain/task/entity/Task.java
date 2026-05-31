@@ -68,7 +68,10 @@ public class Task {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
         if (newStatus == TaskStatus.IN_PROGRESS) {
-            this.startedAt = LocalDateTime.now();
+            if (this.startedAt == null) {
+                this.startedAt = LocalDateTime.now();
+            }
+            this.completedAt = null;
         } else if (newStatus == TaskStatus.COMPLETED) {
             this.completedAt = LocalDateTime.now();
         }

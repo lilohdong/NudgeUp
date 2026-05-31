@@ -4,6 +4,7 @@ import com.nudgeup.backend.global.exception.CustomException;
 import com.nudgeup.backend.global.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.*;
 
 class TaskTest {
@@ -47,5 +48,21 @@ class TaskTest {
         Task task = makeTask(TaskStatus.IN_PROGRESS);
         assertThatCode(() -> task.changeStatus(TaskStatus.COMPLETED))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    void 완료에서_진행중으로_복구_시_completedAt이_초기화된다() {
+        Task task = makeTask(TaskStatus.COMPLETED);
+        assertThat(task.getCompletedAt()).isNotNull();
+        task.changeStatus(TaskStatus.IN_PROGRESS);
+        assertThat(task.getCompletedAt()).isNull();
+    }
+
+    @Test
+    void 최초_진행중_전환_시만_startedAt이_설정된다() {
+        Task task = makeTask(TaskStatus.COMPLETED);
+        LocalDateTime originalStartedAt = task.getStartedAt();
+        task.changeStatus(TaskStatus.IN_PROGRESS);
+        assertThat(task.getStartedAt()).isEqualTo(originalStartedAt);
     }
 }
