@@ -28,13 +28,37 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         if (NudgeUpApplication.getTokenManager().isLoggedIn()) {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            new com.nudgeup.app.data.repository.UserRepository().getMe()
+                    .enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
+                        @Override
+                        public void onResponse(
+                                retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
+                                retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> response) {
+                            if (response.isSuccessful()) {
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            } else {
+                                NudgeUpApplication.getTokenManager().clearTokens();
+                                setContentView(R.layout.activity_login);
+                                setupLoginUi();
+                            }
+                        }
+                        @Override
+                        public void onFailure(
+                                retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
+                                Throwable t) {
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            finish();
+                        }
+                    });
             return;
         }
 
         setContentView(R.layout.activity_login);
+        setupLoginUi();
+    }
 
+    private void setupLoginUi() {
         viewModel = new ViewModelProvider(this, new LoginViewModel.Factory(NudgeUpApplication.getTokenManager()))
                 .get(LoginViewModel.class);
 
@@ -47,28 +71,18 @@ public class LoginActivity extends AppCompatActivity {
         CheckBox cbSaveId = findViewById(R.id.cb_save_id);
         TextView tvFindPassword = findViewById(R.id.tv_find_password);
 
-        // 저장된 아이디 불러오기
         SharedPreferences prefs = getSharedPreferences("nudgeup_prefs", MODE_PRIVATE);
         boolean isSaved = prefs.getBoolean("save_id", false);
         cbSaveId.setChecked(isSaved);
         if (isSaved) etUserId.setText(prefs.getString("saved_id", ""));
 
-        // 뒤로가기 (앱 종료)
         btnBack.setOnClickListener(v -> finish());
-
-        // 비밀번호 표시 토글
         btnTogglePassword.setOnClickListener(v -> togglePasswordVisibility());
-
-        // 아이디 저장 체크박스
-        cbSaveId.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("save_id", isChecked).apply();
-        });
-
-        // 비밀번호 찾기
+        cbSaveId.setOnCheckedChangeListener((btn, isChecked) ->
+                prefs.edit().putBoolean("save_id", isChecked).apply());
         tvFindPassword.setOnClickListener(v ->
                 startActivity(new Intent(this, FindPasswordActivity.class)));
 
-        // 로그인 버튼
         btnLogin.setOnClickListener(v -> {
             String userId = etUserId.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
@@ -82,11 +96,9 @@ public class LoginActivity extends AppCompatActivity {
             viewModel.login(userId, password);
         });
 
-        // 회원가입 버튼
         btnRegister.setOnClickListener(v ->
                 startActivity(new Intent(this, RegisterActivity.class)));
 
-        // 로그인 결과 관찰
         viewModel.getLoginResult().observe(this, result -> {
             if (result.isSuccess()) {
                 startActivity(new Intent(this, MainActivity.class));
