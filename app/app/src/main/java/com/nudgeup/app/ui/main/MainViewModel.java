@@ -115,6 +115,7 @@ public class MainViewModel extends ViewModel {
         selectedMemberId = -1L;
         loadMembers(teamId);
         loadTasks(teamId);
+        loadReceivedNudgeCount();
     }
 
     public void loadTasks(long teamId) {
@@ -191,6 +192,28 @@ public class MainViewModel extends ViewModel {
             }
         }
         teamTasks.setValue(sortTasksStatic(filtered, teamTasksSortMode));
+    }
+
+    public void loadReceivedNudgeCount() {
+        nudgeRepository.getReceivedNudgeCount(3).enqueue(
+                new Callback<ApiResponse<java.util.Map<String, Long>>>() {
+                    @Override
+                    public void onResponse(
+                            Call<ApiResponse<java.util.Map<String, Long>>> call,
+                            Response<ApiResponse<java.util.Map<String, Long>>> response) {
+                        if (response.isSuccessful() && response.body() != null
+                                && response.body().isSuccess()) {
+                            java.util.Map<String, Long> data = response.body().getData();
+                            Long count = data != null ? data.get("count") : 0L;
+                            nudgeCount.setValue(count != null ? count.intValue() : 0);
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<ApiResponse<java.util.Map<String, Long>>> call,
+                                          Throwable t) {
+                        // 카운트 갱신 실패 무시
+                    }
+                });
     }
 
     public void sendNudge(long taskId) {
