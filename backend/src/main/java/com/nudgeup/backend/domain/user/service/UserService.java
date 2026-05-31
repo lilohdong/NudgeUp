@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,11 +81,21 @@ public class UserService {
             }
         }
 
+        // 혼자인 팀 해산: Task → NudgeLog → TeamMember → Team 순으로 삭제
         for (TeamMember m : myMemberships) {
             if (m.getRole() == TeamRole.LEADER) {
-                teamRepository.deleteById(m.getTeamId());
+                Long teamId = m.getTeamId();
+                List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
+                        .map(t -> t.getId()).collect(java.util.stream.Collectors.toList());
+                if (!taskIds.isEmpty()) {
+                    nudgeLogRepository.deleteByTaskIdIn(taskIds);
+                }
+                taskRepository.deleteAllByTeamId(teamId);
+                teamMemberRepository.deleteAllByTeamId(teamId);
+                teamRepository.deleteById(teamId);
             }
         }
+        // 남은 비-팀장 멤버십 삭제
         teamMemberRepository.deleteAllByUserId(userId);
 
         taskRepository.clearAssigneeByUserId(userId);

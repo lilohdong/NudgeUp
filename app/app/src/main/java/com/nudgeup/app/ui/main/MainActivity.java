@@ -44,6 +44,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    private final ActivityResultLauncher<Intent> teamSettingsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    viewModel.loadTeams();
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,13 +128,13 @@ public class MainActivity extends AppCompatActivity {
         );
         rvMyTasks.setAdapter(myTaskAdapter);
 
-        // 팀 설정 (팀장/팀원 모두 접근 가능, myRole 전달)
+        // 팀 설정 (팀장/팀원 모두 접근 가능, myRole 전달, 탈퇴 시 팀 목록 새로고침)
         btnTeamSettings.setOnClickListener(v -> {
             if (viewModel.getCurrentTeam().getValue() == null) return;
             Intent intent = new Intent(this, TeamSettingsActivity.class);
             intent.putExtra("teamId", viewModel.getCurrentTeam().getValue().getId());
             intent.putExtra("myRole", viewModel.getCurrentTeam().getValue().getMyRole());
-            startActivity(intent);
+            teamSettingsLauncher.launch(intent);
         });
 
         // 버튼 이벤트

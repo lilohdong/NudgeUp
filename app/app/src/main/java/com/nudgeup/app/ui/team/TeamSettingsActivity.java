@@ -46,6 +46,7 @@ public class TeamSettingsActivity extends AppCompatActivity {
 
         View btnClose             = findViewById(R.id.btn_close);
         Button btnSave            = findViewById(R.id.btn_save);
+        if (!isLeader) btnSave.setVisibility(android.view.View.GONE);
         LinearLayout dropdownLeader = findViewById(R.id.dropdown_leader);
         tvSelectedLeader          = findViewById(R.id.tv_selected_leader);
         tvInviteCode              = findViewById(R.id.tv_invite_code);
