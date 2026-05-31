@@ -24,6 +24,7 @@ import com.nudgeup.app.ui.main.adapter.TeamTabAdapter;
 import com.nudgeup.app.ui.main.dialog.ProfileDialog;
 import com.nudgeup.app.ui.task.CreateTaskActivity;
 import com.nudgeup.app.ui.team.CreateTeamActivity;
+import com.nudgeup.app.ui.nudge.NudgeInboxActivity;
 import com.nudgeup.app.ui.team.TeamSettingsActivity;
 import com.nudgeup.app.data.dto.response.MemberResponse;
 import java.util.List;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tvMyTaskCount = findViewById(R.id.tv_my_task_count);
         TextView tvNudgeCount = findViewById(R.id.tv_nudge_count);
         View btnNewTask = findViewById(R.id.btn_new_task);
+        View btnNudgeInbox = findViewById(R.id.btn_nudge_inbox);
         View layoutMainContent  = findViewById(R.id.layout_main_content);
         View layoutEmptyState   = findViewById(R.id.layout_empty_state);
         View btnCreateTeamEmpty = findViewById(R.id.btn_create_team_empty);
@@ -158,6 +160,9 @@ public class MainActivity extends AppCompatActivity {
             boolean isLeader = viewModel.isCurrentUserLeader();
             ProfileDialog.newInstance(isLeader).show(getSupportFragmentManager(), "profile");
         });
+
+        btnNudgeInbox.setOnClickListener(v ->
+                startActivity(new Intent(this, NudgeInboxActivity.class)));
 
         btnNewTask.setOnClickListener(v -> {
             Intent intent = new Intent(this, CreateTaskActivity.class);
