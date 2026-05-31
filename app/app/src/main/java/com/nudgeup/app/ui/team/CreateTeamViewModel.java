@@ -33,8 +33,8 @@ public class CreateTeamViewModel extends ViewModel {
     public LiveData<Boolean> getCreateResult() { return createResult; }
     public LiveData<String> getNetworkError() { return networkError; }
 
-    public void createTeam(String name) {
-        teamRepository.createTeam(name).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
+    public void createTeam(String name, String colorHex) {
+        teamRepository.createTeam(name, colorHex).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
             @Override
             public void onResponse(Call<ApiResponse<TeamDetailResponse>> call,
                                    Response<ApiResponse<TeamDetailResponse>> response) {
