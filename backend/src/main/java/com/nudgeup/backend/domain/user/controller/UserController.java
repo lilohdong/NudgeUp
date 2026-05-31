@@ -51,4 +51,11 @@ public class UserController {
         userService.updateFcmToken(userId, request);
         return ResponseEntity.ok(ApiResponse.success("FCM 토큰이 등록되었습니다.", null));
     }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteMyAccount(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.deleteUser(userDetails.getUser().getId());
+        return ResponseEntity.ok(ApiResponse.success("회원탈퇴가 완료되었습니다.", null));
+    }
 }

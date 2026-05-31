@@ -7,6 +7,8 @@ import com.nudgeup.backend.domain.team.dto.response.*;
 import com.nudgeup.backend.domain.team.entity.Team;
 import com.nudgeup.backend.domain.team.entity.TeamMember;
 import com.nudgeup.backend.domain.team.entity.TeamRole;
+import com.nudgeup.backend.domain.nudge.repository.NudgeLogRepository;
+import com.nudgeup.backend.domain.task.repository.TaskRepository;
 import com.nudgeup.backend.domain.team.repository.TeamMemberRepository;
 import com.nudgeup.backend.domain.team.repository.TeamRepository;
 import com.nudgeup.backend.domain.user.entity.User;
@@ -29,6 +31,8 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final NudgeLogRepository nudgeLogRepository;
 
     @Transactional
     public TeamDetailResponse createTeam(Long userId, CreateTeamRequest request) {
@@ -158,8 +162,40 @@ public class TeamService {
         TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
         if (member.getRole() == TeamRole.LEADER) {
-            throw new CustomException(ErrorCode.LEADER_CANNOT_LEAVE);
+            long memberCount = teamMemberRepository.countByTeamId(teamId);
+            if (memberCount > 1) {
+                throw new CustomException(ErrorCode.LEADER_CANNOT_LEAVE);
+            }
+            dissolveTeam(teamId);
+            return;
         }
         teamMemberRepository.delete(member);
+    }
+
+    private void dissolveTeam(Long teamId) {
+        List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
+                .map(task -> task.getId())
+                .collect(Collectors.toList());
+        if (!taskIds.isEmpty()) {
+            nudgeLogRepository.deleteByTaskIdIn(taskIds);
+        }
+        taskRepository.deleteAllByTeamId(teamId);
+        teamMemberRepository.deleteAllByTeamId(teamId);
+        teamRepository.deleteById(teamId);
+    }
+
+    @Transactional
+    public void kickMember(Long leaderId, Long teamId, Long targetUserId) {
+        TeamMember leader = teamMemberRepository.findByTeamIdAndUserId(teamId, leaderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        if (leader.getRole() != TeamRole.LEADER) {
+            throw new CustomException(ErrorCode.NOT_TEAM_LEADER);
+        }
+        if (leaderId.equals(targetUserId)) {
+            throw new CustomException(ErrorCode.CANNOT_KICK_SELF);
+        }
+        TeamMember target = teamMemberRepository.findByTeamIdAndUserId(teamId, targetUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        teamMemberRepository.delete(target);
     }
 }

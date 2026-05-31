@@ -9,6 +9,7 @@ import com.nudgeup.app.data.dto.response.TeamResponse;
 import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
@@ -32,4 +33,12 @@ public interface TeamApi {
 
     @POST("teams/join")
     Call<ApiResponse<TeamResponse>> joinTeam(@Body JoinTeamRequest request);
+
+    @DELETE("teams/{teamId}/members/me")
+    Call<ApiResponse<Void>> leaveTeam(@Path("teamId") long teamId);
+
+    @DELETE("teams/{teamId}/members/{memberId}")
+    Call<ApiResponse<Void>> kickMember(
+            @Path("teamId") long teamId,
+            @Path("memberId") long memberId);
 }

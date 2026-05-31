@@ -44,6 +44,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    private final ActivityResultLauncher<Intent> teamSettingsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    viewModel.loadTeams();
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,45 +128,25 @@ public class MainActivity extends AppCompatActivity {
         );
         rvMyTasks.setAdapter(myTaskAdapter);
 
-        // 팀 설정 (getCurrentTeam이 갱신될 때마다 teamId를 읽어옴)
+        // 팀 설정 (팀장/팀원 모두 접근 가능, myRole 전달, 탈퇴 시 팀 목록 새로고침)
         btnTeamSettings.setOnClickListener(v -> {
             if (viewModel.getCurrentTeam().getValue() == null) return;
             Intent intent = new Intent(this, TeamSettingsActivity.class);
             intent.putExtra("teamId", viewModel.getCurrentTeam().getValue().getId());
-            startActivity(intent);
+            intent.putExtra("myRole", viewModel.getCurrentTeam().getValue().getMyRole());
+            teamSettingsLauncher.launch(intent);
         });
 
         // 버튼 이벤트
-        btnAddTeam.setOnClickListener(v ->
-                createTeamLauncher.launch(new Intent(this, CreateTeamActivity.class)));
+        btnAddTeam.setOnClickListener(v -> showTeamActionDialog());
 
         btnCreateTeamEmpty.setOnClickListener(v ->
                 createTeamLauncher.launch(new Intent(this, CreateTeamActivity.class)));
 
-        btnJoinTeamEmpty.setOnClickListener(v -> {
-            android.widget.EditText etCode = new android.widget.EditText(this);
-            etCode.setHint("초대 코드를 입력하세요");
-            etCode.setSingleLine(true);
-            int p = (int)(16 * getResources().getDisplayMetrics().density);
-            etCode.setPadding(p, p, p, p);
-            new AlertDialog.Builder(this)
-                    .setTitle("팀 참가")
-                    .setView(etCode)
-                    .setPositiveButton("참가", (dialog, which) -> {
-                        String code = etCode.getText().toString().trim();
-                        if (!code.isEmpty()) {
-                            ((android.app.AlertDialog) dialog).getButton(android.content.DialogInterface.BUTTON_POSITIVE).setEnabled(false);
-                            viewModel.joinTeam(code);
-                        }
-                    })
-                    .setNegativeButton("취소", null)
-                    .show();
-        });
+        btnJoinTeamEmpty.setOnClickListener(v -> showJoinTeamDialog());
 
-        btnMy.setOnClickListener(v -> {
-            boolean isLeader = viewModel.isCurrentUserLeader();
-            ProfileDialog.newInstance(isLeader).show(getSupportFragmentManager(), "profile");
-        });
+        btnMy.setOnClickListener(v ->
+                ProfileDialog.newInstance().show(getSupportFragmentManager(), "profile"));
 
         btnNudgeInbox.setOnClickListener(v ->
                 startActivity(new Intent(this, NudgeInboxActivity.class)));
@@ -216,8 +203,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getCurrentTeam().observe(this, team -> {
             if (team == null) return;
             tvTeamName.setText(team.getName());
-            btnTeamSettings.setVisibility(
-                    "LEADER".equals(team.getMyRole()) ? View.VISIBLE : View.GONE);
+            btnTeamSettings.setVisibility(View.VISIBLE);
 
             // 팀 탭 선택 표시 갱신
             if (teamTabAdapter != null) {
@@ -262,6 +248,48 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.loadTeams();
+    }
+
+    private void showTeamActionDialog() {
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_team_action, null);
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+        dialogView.findViewById(R.id.btn_create_team).setOnClickListener(btn -> {
+            dialog.dismiss();
+            createTeamLauncher.launch(new Intent(this, CreateTeamActivity.class));
+        });
+        dialogView.findViewById(R.id.btn_join_with_code).setOnClickListener(btn -> {
+            dialog.dismiss();
+            showJoinTeamDialog();
+        });
+        dialog.show();
+    }
+
+    private void showJoinTeamDialog() {
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_invite_code, null);
+        android.widget.EditText etCode = dialogView.findViewById(R.id.et_invite_code);
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+        dialogView.findViewById(R.id.btn_invite_cancel).setOnClickListener(btn -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_invite_confirm).setOnClickListener(btn -> {
+            String code = etCode.getText().toString().trim();
+            if (!code.isEmpty()) {
+                dialogView.findViewById(R.id.btn_invite_confirm).setEnabled(false);
+                viewModel.joinTeam(code);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 
     private MainViewModel.SortMode indexToSortMode(int position) {

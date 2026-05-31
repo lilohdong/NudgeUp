@@ -32,4 +32,8 @@ public interface NudgeLogRepository extends JpaRepository<NudgeLog, Long> {
            "AND n.sentAt >= :since")
     long countReceivedByUserIdSince(@Param("userId") Long userId,
                                     @Param("since") LocalDateTime since);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM NudgeLog n WHERE n.sentById = :userId")
+    void deleteBySentById(@Param("userId") Long userId);
 }

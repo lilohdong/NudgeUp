@@ -38,4 +38,12 @@ public class TeamRepository {
     public Call<ApiResponse<TeamResponse>> joinTeam(String inviteCode) {
         return teamApi.joinTeam(new JoinTeamRequest(inviteCode));
     }
+
+    public Call<ApiResponse<Void>> leaveTeam(long teamId) {
+        return teamApi.leaveTeam(teamId);
+    }
+
+    public Call<ApiResponse<Void>> kickMember(long teamId, long memberId) {
+        return teamApi.kickMember(teamId, memberId);
+    }
 }

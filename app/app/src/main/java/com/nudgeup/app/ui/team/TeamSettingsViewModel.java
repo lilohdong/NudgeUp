@@ -38,6 +38,8 @@ public class TeamSettingsViewModel extends ViewModel {
     private final MutableLiveData<Boolean>              saveResult   = new MutableLiveData<>();
     private final MutableLiveData<String>               inviteCode   = new MutableLiveData<>();
     private final MutableLiveData<String>               networkError = new MutableLiveData<>();
+    private final MutableLiveData<Boolean>              leaveResult  = new MutableLiveData<>();
+    private final MutableLiveData<String>               leaveError   = new MutableLiveData<>();
 
     private final Map<Long, Boolean> pendingNudgePermissions = new HashMap<>();
     private Long pendingNewLeaderId = null;
@@ -46,6 +48,8 @@ public class TeamSettingsViewModel extends ViewModel {
     public LiveData<Boolean>             getSaveResult()   { return saveResult; }
     public LiveData<String>              getInviteCode()   { return inviteCode; }
     public LiveData<String>              getNetworkError() { return networkError; }
+    public LiveData<Boolean>             getLeaveResult()  { return leaveResult; }
+    public LiveData<String>              getLeaveError()   { return leaveError; }
 
     public void loadMembers(long teamId) {
         teamRepository.getTeamDetail(teamId).enqueue(new Callback<ApiResponse<TeamDetailResponse>>() {
@@ -73,6 +77,46 @@ public class TeamSettingsViewModel extends ViewModel {
 
     public void setNewLeader(long userId) {
         pendingNewLeaderId = userId;
+    }
+
+    public void leaveTeam(long teamId) {
+        teamRepository.leaveTeam(teamId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful()) {
+                    leaveResult.setValue(true);
+                } else {
+                    try {
+                        if (response.errorBody() != null) {
+                            String body = response.errorBody().string();
+                            org.json.JSONObject json = new org.json.JSONObject(body);
+                            leaveError.setValue(json.optString("message", "탈퇴에 실패했습니다."));
+                        }
+                    } catch (Exception e) {
+                        leaveError.setValue("탈퇴에 실패했습니다.");
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                leaveError.setValue("네트워크 오류가 발생했습니다.");
+            }
+        });
+    }
+
+    public void kickMember(long teamId, long memberId) {
+        teamRepository.kickMember(teamId, memberId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful()) {
+                    loadMembers(teamId);
+                }
+            }
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                networkError.setValue("네트워크 오류가 발생했습니다.");
+            }
+        });
     }
 
     public void saveSettings(long teamId) {

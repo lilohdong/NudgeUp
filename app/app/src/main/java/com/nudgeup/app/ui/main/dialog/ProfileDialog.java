@@ -33,8 +33,6 @@ import retrofit2.Response;
 
 public class ProfileDialog extends DialogFragment {
 
-    private static final String ARG_IS_LEADER = "is_leader";
-
     private static final String PREFS_NAME  = "profile_prefs";
     private static final String KEY_NAME    = "profile_name";
     private static final String KEY_COLOR   = "profile_avatar_color";
@@ -42,12 +40,12 @@ public class ProfileDialog extends DialogFragment {
     private static final String KEY_LAST_NAME_CHANGE_MS = "last_name_change_ms";
     private static final long   SEVEN_DAYS_MS = 7L * 24 * 60 * 60 * 1000;
 
+    public static ProfileDialog newInstance() {
+        return new ProfileDialog();
+    }
+
     public static ProfileDialog newInstance(boolean isLeader) {
-        ProfileDialog dialog = new ProfileDialog();
-        Bundle args = new Bundle();
-        args.putBoolean(ARG_IS_LEADER, isLeader);
-        dialog.setArguments(args);
-        return dialog;
+        return new ProfileDialog();
     }
 
     /** 선택 가능한 아바타 색상 팔레트 (8가지) */
@@ -110,9 +108,6 @@ public class ProfileDialog extends DialogFragment {
         layoutEditMode        = view.findViewById(R.id.layout_edit_mode);
         flAvatarEditBadge     = view.findViewById(R.id.fl_avatar_edit_badge);
         btnEditProfile        = view.findViewById(R.id.btn_edit_profile);
-
-        boolean isLeader = getArguments() != null && getArguments().getBoolean(ARG_IS_LEADER, false);
-        ((TextView) view.findViewById(R.id.tv_user_role)).setText(isLeader ? "팀장" : "팀원");
 
         // ── 초기 아바타·이름 렌더링 ──
         applyAvatarColor(selectedColor);
@@ -257,6 +252,67 @@ public class ProfileDialog extends DialogFragment {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             dismiss();
+        });
+
+        // ── 회원탈퇴 ──
+        Button btnDeleteAccount = view.findViewById(R.id.btn_delete_account);
+        btnDeleteAccount.setOnClickListener(v -> {
+            android.view.View confirmView = android.view.LayoutInflater.from(requireContext())
+                    .inflate(R.layout.dialog_delete_task, null);
+            ((android.widget.TextView) confirmView.findViewById(R.id.tv_dialog_title))
+                    .setText("회원탈퇴");
+            ((android.widget.TextView) confirmView.findViewById(R.id.tv_dialog_message))
+                    .setText("정말 탈퇴하시겠습니까?\n팀 멤버십과 작업 정보가 초기화됩니다.\n(팀장이라면 팀장 위임 후 탈퇴 가능)");
+            ((android.widget.TextView) confirmView.findViewById(R.id.btn_dialog_confirm))
+                    .setText("탈퇴");
+
+            android.app.AlertDialog confirmDialog = new android.app.AlertDialog.Builder(requireContext())
+                    .setView(confirmView).create();
+            if (confirmDialog.getWindow() != null) {
+                confirmDialog.getWindow().setBackgroundDrawable(
+                        new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+            }
+
+            confirmView.findViewById(R.id.btn_dialog_cancel)
+                    .setOnClickListener(btn -> confirmDialog.dismiss());
+            confirmView.findViewById(R.id.btn_dialog_confirm)
+                    .setOnClickListener(btn -> {
+                        confirmDialog.dismiss();
+                        userRepo.deleteMe().enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<Void>>() {
+                            @Override
+                            public void onResponse(
+                                    retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<Void>> call,
+                                    retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<Void>> response) {
+                                if (response.isSuccessful()) {
+                                    NudgeUpApplication.getTokenManager().clearTokens();
+                                    android.content.Intent intent = new android.content.Intent(
+                                            requireActivity(), LoginActivity.class);
+                                    intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                            | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                    dismiss();
+                                } else {
+                                    try {
+                                        if (response.errorBody() != null) {
+                                            org.json.JSONObject json = new org.json.JSONObject(
+                                                    response.errorBody().string());
+                                            ToastUtils.show(requireContext(),
+                                                    json.optString("message", "탈퇴에 실패했습니다."));
+                                        }
+                                    } catch (Exception e) {
+                                        ToastUtils.show(requireContext(), "탈퇴에 실패했습니다.");
+                                    }
+                                }
+                            }
+                            @Override
+                            public void onFailure(
+                                    retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<Void>> call,
+                                    Throwable t) {
+                                ToastUtils.show(requireContext(), "네트워크 오류가 발생했습니다.");
+                            }
+                        });
+                    });
+            confirmDialog.show();
         });
 
         return view;

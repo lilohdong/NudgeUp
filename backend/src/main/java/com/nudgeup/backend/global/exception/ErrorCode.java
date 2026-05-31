@@ -28,6 +28,8 @@ public enum ErrorCode {
     NOT_TEAM_MEMBER(403, "해당 팀의 멤버가 아닙니다."),
     NOT_TEAM_LEADER(403, "팀장만 수행할 수 있습니다."),
     LEADER_CANNOT_LEAVE(400, "팀장은 팀장을 위임한 후 탈퇴할 수 있습니다."),
+    CANNOT_KICK_SELF(400, "자기 자신은 추방할 수 없습니다."),
+    LEADER_HAS_MEMBERS(400, "팀장을 위임한 후 탈퇴해주세요."),
 
     // Task
     TASK_NOT_FOUND(404, "작업을 찾을 수 없습니다."),
