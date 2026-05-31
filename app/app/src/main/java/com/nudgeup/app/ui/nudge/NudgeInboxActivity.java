@@ -56,7 +56,8 @@ public class NudgeInboxActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<ApiResponse<List<NudgeLogItemResponse>>> call,
                                          Throwable t) {
-                        // 네트워크 오류 시 빈 상태 표시
+                        findViewById(R.id.rv_nudge_inbox).setVisibility(View.GONE);
+                        findViewById(R.id.tv_empty).setVisibility(View.VISIBLE);
                     }
                 });
     }

@@ -51,7 +51,6 @@ public class NudgeLogAdapter extends ListAdapter<NudgeLogItemResponse, NudgeLogA
             if (normalized.length() > 19) normalized = normalized.substring(0, 19);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             Date sentAt = sdf.parse(normalized);
-            if (sentAt == null) return "";
             long diffMs = new Date().getTime() - sentAt.getTime();
             long minutes = diffMs / 60000;
             if (minutes < 1)    return "방금 전";
