@@ -125,8 +125,12 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         holder.tvStatusBadge.setBackgroundResource(badgeBgRes);
 
         // 상태 배지 클릭 → 드롭다운으로 상태 변경
-        holder.tvStatusBadge.setOnClickListener(v ->
-                showStatusDropdown(v, task.getId(), task.getStatus()));
+        if (isCancelled) {
+            holder.tvStatusBadge.setOnClickListener(null);
+        } else {
+            holder.tvStatusBadge.setOnClickListener(v ->
+                    showStatusDropdown(v, task.getId(), task.getStatus()));
+        }
 
         // ── D-day 텍스트 ──
         if (task.getDueDate() == null || task.getDueDate().isEmpty()) {
@@ -147,7 +151,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
         // ── 작업명 ──
         holder.tvTaskTitle.setText(task.getTitle());
-        holder.tvTaskTitle.setAlpha(isCompleted ? 0.5f : 1.0f);
+        holder.tvTaskTitle.setAlpha((isCompleted || isCancelled) ? 0.5f : 1.0f);
 
         // ── 담당자 아바타 ──
         if (task.getAssignee() != null) {
@@ -165,7 +169,10 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         }
 
         // ── 액션 버튼 ──
-        if (isMyTaskMode) {
+        if (isCancelled) {
+            holder.btnAction.setAlpha(0.0f);
+            holder.btnAction.setOnClickListener(null);
+        } else if (isMyTaskMode) {
             holder.btnAction.setImageResource(R.drawable.ic_edit);
             holder.btnAction.setAlpha(1.0f);
             holder.btnAction.setOnClickListener(v -> showStatusDropdown(v, task.getId(), task.getStatus()));
