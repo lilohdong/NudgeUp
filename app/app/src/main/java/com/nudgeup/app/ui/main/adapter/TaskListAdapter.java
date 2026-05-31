@@ -186,21 +186,49 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
         }
 
-        // ── 폐기 버튼 ──
+        // ── 삭제 버튼 ──
         if (isCancelled) {
             holder.btnCancel.setVisibility(View.GONE);
         } else {
             holder.btnCancel.setVisibility(View.VISIBLE);
             holder.btnCancel.setAlpha(0.6f);
-            holder.btnCancel.setOnClickListener(v -> {
-                new android.app.AlertDialog.Builder(v.getContext())
-                        .setTitle("작업 폐기")
-                        .setMessage("'" + task.getTitle() + "' 작업을 폐기하시겠습니까?\n폐기된 작업은 3일 후 자동으로 삭제됩니다.")
-                        .setPositiveButton("폐기", (dialog, which) -> cancelListener.onCancelClick(task.getId()))
-                        .setNegativeButton("취소", null)
-                        .show();
-            });
+            holder.btnCancel.setOnClickListener(v -> showDeleteDialog(v, task));
         }
+    }
+
+    // ─────────────────────────────────────────
+    //  삭제 확인 다이얼로그
+    // ─────────────────────────────────────────
+
+    private void showDeleteDialog(View anchor, TaskResponse task) {
+        Context context = anchor.getContext();
+        android.view.View dialogView = android.view.LayoutInflater.from(context)
+                .inflate(R.layout.dialog_delete_task, null);
+
+        android.widget.TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        android.widget.TextView tvMessage = dialogView.findViewById(R.id.tv_dialog_message);
+        android.widget.TextView btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        android.widget.TextView btnConfirm = dialogView.findViewById(R.id.btn_dialog_confirm);
+
+        tvTitle.setText("작업 삭제");
+        tvMessage.setText("'" + task.getTitle() + "' 작업을 삭제하시겠습니까?\n삭제된 작업은 3일 후 자동으로 제거됩니다.");
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(context)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            cancelListener.onCancelClick(task.getId());
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     // ─────────────────────────────────────────

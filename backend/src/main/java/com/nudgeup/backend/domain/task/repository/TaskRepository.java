@@ -20,9 +20,13 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findByTeamIdAndStatus(Long teamId, TaskStatus status);
 
+    List<Task> findByTeamIdAndStatusNot(Long teamId, TaskStatus status);
+
     List<Task> findByTeamIdAndAssigneeId(Long teamId, Long assigneeId);
 
     List<Task> findByTeamIdAndAssigneeIdAndStatus(Long teamId, Long assigneeId, TaskStatus status);
+
+    List<Task> findByTeamIdAndAssigneeIdAndStatusNot(Long teamId, Long assigneeId, TaskStatus status);
 
     @Query("SELECT t FROM Task t WHERE " +
            "(t.status = :completed AND t.completedAt < :cutoff) OR " +
