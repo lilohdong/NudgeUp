@@ -60,20 +60,49 @@ class TaskTest {
 
     @Test
     void 최초_진행중_전환_시만_startedAt이_설정된다() {
-        // PENDING 상태 작업: startedAt이 null
         Task task = makeTask(TaskStatus.PENDING);
         assertThat(task.getStartedAt()).isNull();
 
-        // 최초 IN_PROGRESS 전환: startedAt 설정됨
         task.changeStatus(TaskStatus.IN_PROGRESS);
         LocalDateTime firstStartedAt = task.getStartedAt();
         assertThat(firstStartedAt).isNotNull();
 
-        // COMPLETED로 전환 후 IN_PROGRESS로 복구
         task.changeStatus(TaskStatus.COMPLETED);
         task.changeStatus(TaskStatus.IN_PROGRESS);
 
-        // startedAt이 최초 값 그대로 보존되어야 함
         assertThat(task.getStartedAt()).isEqualTo(firstStartedAt);
+    }
+
+    @Test
+    void 진행중_작업을_폐기할_수_있다() {
+        Task task = makeTask(TaskStatus.IN_PROGRESS);
+        assertThatCode(() -> task.changeStatus(TaskStatus.CANCELLED))
+                .doesNotThrowAnyException();
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.CANCELLED);
+    }
+
+    @Test
+    void 완료된_작업을_폐기할_수_있다() {
+        Task task = makeTask(TaskStatus.COMPLETED);
+        assertThatCode(() -> task.changeStatus(TaskStatus.CANCELLED))
+                .doesNotThrowAnyException();
+        assertThat(task.getStatus()).isEqualTo(TaskStatus.CANCELLED);
+    }
+
+    @Test
+    void 폐기된_작업은_다른_상태로_변경_불가() {
+        Task task = makeTask(TaskStatus.IN_PROGRESS);
+        task.changeStatus(TaskStatus.CANCELLED);
+        assertThatThrownBy(() -> task.changeStatus(TaskStatus.IN_PROGRESS))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TASK_ALREADY_CANCELLED);
+    }
+
+    @Test
+    void 폐기_시_cancelledAt이_설정된다() {
+        Task task = makeTask(TaskStatus.IN_PROGRESS);
+        task.changeStatus(TaskStatus.CANCELLED);
+        assertThat(task.getCancelledAt()).isNotNull();
     }
 }
