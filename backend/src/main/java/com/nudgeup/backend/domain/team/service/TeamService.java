@@ -155,8 +155,29 @@ public class TeamService {
         TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
         if (member.getRole() == TeamRole.LEADER) {
-            throw new CustomException(ErrorCode.LEADER_CANNOT_LEAVE);
+            long memberCount = teamMemberRepository.countByTeamId(teamId);
+            if (memberCount > 1) {
+                throw new CustomException(ErrorCode.LEADER_CANNOT_LEAVE);
+            }
+            teamMemberRepository.delete(member);
+            teamRepository.deleteById(teamId);
+            return;
         }
         teamMemberRepository.delete(member);
+    }
+
+    @Transactional
+    public void kickMember(Long leaderId, Long teamId, Long targetUserId) {
+        TeamMember leader = teamMemberRepository.findByTeamIdAndUserId(teamId, leaderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        if (leader.getRole() != TeamRole.LEADER) {
+            throw new CustomException(ErrorCode.NOT_TEAM_LEADER);
+        }
+        if (leaderId.equals(targetUserId)) {
+            throw new CustomException(ErrorCode.CANNOT_KICK_SELF);
+        }
+        TeamMember target = teamMemberRepository.findByTeamIdAndUserId(teamId, targetUserId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        teamMemberRepository.delete(target);
     }
 }

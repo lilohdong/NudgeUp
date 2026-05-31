@@ -81,4 +81,14 @@ public class TeamController {
         teamService.leaveTeam(userId, teamId);
         return ResponseEntity.ok(ApiResponse.success("팀에서 탈퇴했습니다.", null));
     }
+
+    @DeleteMapping("/{teamId}/members/{memberId}")
+    public ResponseEntity<ApiResponse<Void>> kickMember(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long teamId,
+            @PathVariable Long memberId) {
+        Long userId = userDetails.getUser().getId();
+        teamService.kickMember(userId, teamId, memberId);
+        return ResponseEntity.ok(ApiResponse.success("팀원이 추방되었습니다.", null));
+    }
 }
