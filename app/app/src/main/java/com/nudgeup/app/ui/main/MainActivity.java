@@ -9,6 +9,8 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         teamTaskAdapter = new TaskListAdapter(
                 taskId -> viewModel.sendNudge(taskId),
                 (taskId, status) -> viewModel.updateTaskStatus(taskId, status),
+                taskId -> viewModel.cancelTask(taskId),
                 false
         );
         rvTeamTasks.setAdapter(teamTaskAdapter);
@@ -112,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 },
                 (taskId, status) -> viewModel.updateTaskStatus(taskId, status),
+                taskId -> viewModel.cancelTask(taskId),
                 true
         );
         rvMyTasks.setAdapter(myTaskAdapter);

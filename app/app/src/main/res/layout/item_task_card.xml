@@ -97,6 +97,16 @@
 
     </LinearLayout>
 
+    <!-- 폐기 버튼 -->
+    <ImageButton
+        android:id="@+id/btn_cancel_task"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/ic_close"
+        android:background="@android:color/transparent"
+        android:scaleType="center"
+        android:contentDescription="작업 폐기"/>
+
     <!-- 액션 버튼 (독촉 / 상태 변경) -->
     <ImageButton
         android:id="@+id/btn_action"

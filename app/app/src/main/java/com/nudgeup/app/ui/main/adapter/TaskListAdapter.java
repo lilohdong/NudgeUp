@@ -30,8 +30,13 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         void onStatusChange(long taskId, String newStatus);
     }
 
+    public interface OnCancelClickListener {
+        void onCancelClick(long taskId);
+    }
+
     private final OnNudgeClickListener nudgeListener;
     private final OnStatusChangeListener statusListener;
+    private final OnCancelClickListener cancelListener;
     private final boolean isMyTaskMode; // true = 내 할일 (수정 아이콘), false = 팀 할일 (종 아이콘)
 
     private static final int[] AVATAR_COLORS = {
@@ -50,10 +55,12 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
     public TaskListAdapter(OnNudgeClickListener nudgeListener,
                            OnStatusChangeListener statusListener,
+                           OnCancelClickListener cancelListener,
                            boolean isMyTaskMode) {
         super(DIFF_CALLBACK);
         this.nudgeListener  = nudgeListener;
         this.statusListener = statusListener;
+        this.cancelListener = cancelListener;
         this.isMyTaskMode   = isMyTaskMode;
     }
 
@@ -69,13 +76,15 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TaskResponse task = getItem(position);
         long dday        = calcDday(task.getDueDate());
-        boolean isUrgent    = !"COMPLETED".equals(task.getStatus()) && dday >= 0 && dday <= 3;
-        boolean isOverdue   = !"COMPLETED".equals(task.getStatus()) && dday < 0;
+        boolean isCancelled = "CANCELLED".equals(task.getStatus());
         boolean isCompleted = "COMPLETED".equals(task.getStatus());
+        boolean isUrgent    = !isCompleted && !isCancelled && dday >= 0 && dday <= 3;
+        boolean isOverdue   = !isCompleted && !isCancelled && dday < 0;
 
         // ── 상태 바 색상 ──
         int statusColor;
         if (isCompleted)                                 statusColor = 0xFF2ECC71;
+        else if (isCancelled)                            statusColor = 0xFF555577;
         else if (isOverdue)                              statusColor = 0xFFFF6B35;
         else if (isUrgent)                               statusColor = 0xFFFF6B35;
         else if ("IN_PROGRESS".equals(task.getStatus())) statusColor = 0xFF7B3FE4;
@@ -86,7 +95,11 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         String badgeText;
         int badgeTextColor;
         int badgeBgRes;
-        if (isCompleted) {
+        if (isCancelled) {
+            badgeText      = "중단";
+            badgeTextColor = 0xFF888899;
+            badgeBgRes     = R.drawable.bg_badge_pending;
+        } else if (isCompleted) {
             badgeText      = "완료";
             badgeTextColor = 0xFF2ECC71;
             badgeBgRes     = R.drawable.bg_badge_complete;
@@ -164,6 +177,22 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             holder.btnAction.setImageResource(R.drawable.ic_bell);
             holder.btnAction.setAlpha(1.0f);
             holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
+        }
+
+        // ── 폐기 버튼 ──
+        if (isCancelled) {
+            holder.btnCancel.setVisibility(View.GONE);
+        } else {
+            holder.btnCancel.setVisibility(View.VISIBLE);
+            holder.btnCancel.setAlpha(0.6f);
+            holder.btnCancel.setOnClickListener(v -> {
+                new android.app.AlertDialog.Builder(v.getContext())
+                        .setTitle("작업 폐기")
+                        .setMessage("'" + task.getTitle() + "' 작업을 폐기하시겠습니까?\n폐기된 작업은 3일 후 자동으로 삭제됩니다.")
+                        .setPositiveButton("폐기", (dialog, which) -> cancelListener.onCancelClick(task.getId()))
+                        .setNegativeButton("취소", null)
+                        .show();
+            });
         }
     }
 
@@ -285,6 +314,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         View vStatusBar;
         TextView tvStatusBadge, tvDday, tvTaskTitle, tvAssigneeAvatar, tvAssigneeName;
         ImageButton btnAction;
+        ImageButton btnCancel;
         final GradientDrawable avatarBg;
 
         ViewHolder(@NonNull View itemView) {
@@ -296,6 +326,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             tvAssigneeAvatar  = itemView.findViewById(R.id.tv_assignee_avatar);
             tvAssigneeName    = itemView.findViewById(R.id.tv_assignee_name);
             btnAction         = itemView.findViewById(R.id.btn_action);
+            btnCancel         = itemView.findViewById(R.id.btn_cancel_task);
             avatarBg = new GradientDrawable();
             avatarBg.setShape(GradientDrawable.OVAL);
             tvAssigneeAvatar.setBackground(avatarBg);
