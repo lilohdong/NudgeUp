@@ -3,7 +3,10 @@ package com.nudgeup.backend.domain.task.repository;
 import com.nudgeup.backend.domain.task.entity.Task;
 import com.nudgeup.backend.domain.task.entity.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 // TODO: Task 엔티티 DB 접근 인터페이스
@@ -20,4 +23,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByTeamIdAndAssigneeId(Long teamId, Long assigneeId);
 
     List<Task> findByTeamIdAndAssigneeIdAndStatus(Long teamId, Long assigneeId, TaskStatus status);
+
+    @Query("SELECT t FROM Task t WHERE " +
+           "(t.status = :completed AND t.completedAt < :cutoff) OR " +
+           "(t.status = :cancelled AND t.cancelledAt < :cutoff)")
+    List<Task> findExpiredTasks(@Param("completed") TaskStatus completed,
+                                @Param("cancelled") TaskStatus cancelled,
+                                @Param("cutoff") LocalDateTime cutoff);
 }
