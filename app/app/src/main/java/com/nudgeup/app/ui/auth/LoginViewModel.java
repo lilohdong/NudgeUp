@@ -47,7 +47,7 @@ public class LoginViewModel extends ViewModel {
                     }
                     loginResult.setValue(UiResult.success());
                 } else {
-                    loginResult.setValue(UiResult.fail("이메일 또는 비밀번호를 확인해주세요."));
+                    loginResult.setValue(UiResult.fail("아이디 또는 비밀번호를 확인해주세요."));
                 }
             }
 

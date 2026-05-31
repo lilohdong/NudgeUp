@@ -1,5 +1,6 @@
 package com.nudgeup.app.ui.nudge;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,14 @@ import java.util.Date;
 import java.util.Locale;
 
 public class NudgeLogAdapter extends ListAdapter<NudgeLogItemResponse, NudgeLogAdapter.ViewHolder> {
-
+    private String[] nudgeString = {
+            "빨리 처리해달라고 합니다!",
+            "얼른 처리해달라고 합니다!",
+            "독촉을 보냈습니다!",
+            "뭐하냐고 물어봅니다!",
+            "빨리 일하라고 합니다!",
+            "화났습니다!!!"
+    };
     public NudgeLogAdapter() {
         super(DIFF);
     }
@@ -29,6 +37,7 @@ public class NudgeLogAdapter extends ListAdapter<NudgeLogItemResponse, NudgeLogA
         return new ViewHolder(v);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         NudgeLogItemResponse item = getItem(position);
@@ -39,7 +48,9 @@ public class NudgeLogAdapter extends ListAdapter<NudgeLogItemResponse, NudgeLogA
 
         String senderName = (item.getSentBy() != null && item.getSentBy().getName() != null)
                 ? item.getSentBy().getName() : "누군가";
-        holder.tvMessage.setText(senderName + "님이 독촉을 보냈습니다");
+        // nudgeString 랜덤 문자열 추가코드
+        int i = new java.util.Random().nextInt(nudgeString.length);
+        holder.tvMessage.setText(senderName + nudgeString[i]);
 
         holder.tvTime.setText(formatRelativeTime(item.getSentAt()));
     }
