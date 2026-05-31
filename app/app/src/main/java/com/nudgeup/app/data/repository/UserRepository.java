@@ -32,4 +32,8 @@ public class UserRepository {
     public Call<ApiResponse<UserResponse>> updateColor(String colorHex) {
         return userApi.updateColor(new UpdateColorRequest(colorHex));
     }
+
+    public Call<ApiResponse<Void>> deleteMe() {
+        return userApi.deleteMe();
+    }
 }

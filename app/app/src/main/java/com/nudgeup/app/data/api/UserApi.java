@@ -7,6 +7,7 @@ import com.nudgeup.app.data.dto.response.ApiResponse;
 import com.nudgeup.app.data.dto.response.UserResponse;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.PATCH;
 import retrofit2.http.PUT;
@@ -24,4 +25,7 @@ public interface UserApi {
 
     @PATCH("users/me/color")
     Call<ApiResponse<UserResponse>> updateColor(@Body UpdateColorRequest request);
+
+    @DELETE("users/me")
+    Call<ApiResponse<Void>> deleteMe();
 }
