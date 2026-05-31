@@ -64,11 +64,14 @@ public class Task {
     }
 
     public void changeStatus(TaskStatus newStatus) {
-        if (this.status == TaskStatus.COMPLETED) {
+        if (this.status == TaskStatus.COMPLETED && newStatus != TaskStatus.IN_PROGRESS) {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
         if (newStatus == TaskStatus.IN_PROGRESS) {
-            this.startedAt = LocalDateTime.now();
+            if (this.startedAt == null) {
+                this.startedAt = LocalDateTime.now();
+            }
+            this.completedAt = null;
         } else if (newStatus == TaskStatus.COMPLETED) {
             this.completedAt = LocalDateTime.now();
         }
