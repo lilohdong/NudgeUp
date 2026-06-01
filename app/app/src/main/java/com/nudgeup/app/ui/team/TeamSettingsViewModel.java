@@ -20,6 +20,8 @@ import retrofit2.Response;
 
 public class TeamSettingsViewModel extends ViewModel {
 
+    private static final String ERROR_NETWORK = "네트워크 오류가 발생했습니다.";
+
     private final TeamRepository teamRepository;
 
     public TeamSettingsViewModel(TeamRepository teamRepository) {
@@ -99,7 +101,7 @@ public class TeamSettingsViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                leaveError.setValue("네트워크 오류가 발생했습니다.");
+                leaveError.setValue(ERROR_NETWORK);
             }
         });
     }
@@ -114,7 +116,7 @@ public class TeamSettingsViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }

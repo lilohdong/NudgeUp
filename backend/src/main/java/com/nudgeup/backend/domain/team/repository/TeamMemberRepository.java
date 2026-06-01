@@ -3,6 +3,8 @@ package com.nudgeup.backend.domain.team.repository;
 import com.nudgeup.backend.domain.team.entity.TeamMember;
 import com.nudgeup.backend.domain.team.entity.TeamRole;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,9 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     List<TeamMember> findAllByUserId(Long userId);
 
     long countByTeamId(Long teamId);
+
+    @Query("SELECT tm.teamId, COUNT(tm) FROM TeamMember tm WHERE tm.teamId IN :teamIds GROUP BY tm.teamId")
+    List<Object[]> countByTeamIdIn(@Param("teamIds") List<Long> teamIds);
 
     void deleteAllByUserId(Long userId);
 

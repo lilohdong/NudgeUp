@@ -18,7 +18,8 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nudgeup.app.R;
 import com.nudgeup.app.data.dto.response.TaskResponse;
-import java.util.Calendar;
+import com.nudgeup.app.util.DateUtils;
+import java.util.Objects;
 
 public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.ViewHolder> {
 
@@ -43,6 +44,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
     public void setCurrentUserLeader(boolean isLeader) {
         this.isCurrentUserLeader = isLeader;
+        notifyDataSetChanged();
     }
 
     private static final int[] AVATAR_COLORS = {
@@ -100,37 +102,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         holder.vStatusBar.setBackgroundColor(statusColor);
 
         // ── 상태 배지 ──
-        String badgeText;
-        int badgeTextColor;
-        int badgeBgRes;
-        if (isCancelled) {
-            badgeText      = "중단";
-            badgeTextColor = 0xFF888899;
-            badgeBgRes     = R.drawable.bg_badge_pending;
-        } else if (isCompleted) {
-            badgeText      = "완료";
-            badgeTextColor = 0xFF2ECC71;
-            badgeBgRes     = R.drawable.bg_badge_complete;
-        } else if (isOverdue) {
-            badgeText      = "기한초과";
-            badgeTextColor = 0xFFFF6B35;
-            badgeBgRes     = R.drawable.bg_badge_urgent;
-        } else if (isUrgent) {
-            badgeText      = "마감임박";
-            badgeTextColor = 0xFFFF6B35;
-            badgeBgRes     = R.drawable.bg_badge_urgent;
-        } else if ("IN_PROGRESS".equals(task.getStatus())) {
-            badgeText      = "진행중";
-            badgeTextColor = 0xFF7B3FE4;
-            badgeBgRes     = R.drawable.bg_badge_progress;
-        } else {
-            badgeText      = "대기";
-            badgeTextColor = 0xFF8888AA;
-            badgeBgRes     = R.drawable.bg_badge_pending;
-        }
-        holder.tvStatusBadge.setText(badgeText);
-        holder.tvStatusBadge.setTextColor(badgeTextColor);
-        holder.tvStatusBadge.setBackgroundResource(badgeBgRes);
+        applyStatusBadge(holder.tvStatusBadge, task);
 
         // 상태 배지 — UI 표시 전용, 클릭 비활성화
         holder.tvStatusBadge.setOnClickListener(null);
@@ -240,25 +212,11 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         tvTitle.setText(task.getTitle());
 
         // 상태 배지
-        boolean isCancelled = "CANCELLED".equals(task.getStatus());
-        boolean isCompleted = "COMPLETED".equals(task.getStatus());
-        long dialogDday = calcDday(task.getDueDate());
-        boolean isOverdue = !isCompleted && !isCancelled && dialogDday < 0;
-        boolean isUrgent  = !isCompleted && !isCancelled && dialogDday >= 0 && dialogDday <= 3;
-        String statusText;
-        int statusColor;
-        int statusBg;
-        if (isCancelled)      { statusText = "중단";    statusColor = 0xFF888899; statusBg = R.drawable.bg_badge_pending; }
-        else if (isCompleted) { statusText = "완료";    statusColor = 0xFF2ECC71; statusBg = R.drawable.bg_badge_complete; }
-        else if (isOverdue)   { statusText = "기한초과"; statusColor = 0xFFFF6B35; statusBg = R.drawable.bg_badge_urgent; }
-        else if (isUrgent)    { statusText = "마감임박"; statusColor = 0xFFFF6B35; statusBg = R.drawable.bg_badge_urgent; }
-        else if ("IN_PROGRESS".equals(task.getStatus())) { statusText = "진행중"; statusColor = 0xFF7B3FE4; statusBg = R.drawable.bg_badge_progress; }
-        else                  { statusText = "대기";    statusColor = 0xFF8888AA; statusBg = R.drawable.bg_badge_pending; }
-        tvStatus.setText(statusText);
-        tvStatus.setTextColor(statusColor);
-        tvStatus.setBackgroundResource(statusBg);
+        applyStatusBadge(tvStatus, task);
 
         // 마감일
+        boolean isCancelled = "CANCELLED".equals(task.getStatus());
+        boolean isCompleted = "COMPLETED".equals(task.getStatus());
         if (task.getDueDate() == null || task.getDueDate().isEmpty()) {
             tvDueDate.setText("없음");
             tvDueDate.setTextColor(0xFF8888AA);
@@ -398,33 +356,59 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
     }
 
     // ─────────────────────────────────────────
-    //  D-day 계산 (java.util.Calendar, minSdk 24 호환)
+    //  상태 배지 렌더링 공통 헬퍼
+    // ─────────────────────────────────────────
+
+    /**
+     * task 의 상태/기한에 따라 배지 TextView 의 텍스트·색상·배경을 일괄 적용.
+     * onBindViewHolder 와 showDetailDialog 양쪽에서 공유.
+     */
+    private void applyStatusBadge(TextView badge, TaskResponse task) {
+        long dday = calcDday(task.getDueDate());
+        boolean isCancelled = "CANCELLED".equals(task.getStatus());
+        boolean isCompleted = "COMPLETED".equals(task.getStatus());
+        boolean isOverdue   = !isCompleted && !isCancelled && dday < 0;
+        boolean isUrgent    = !isCompleted && !isCancelled && dday >= 0 && dday <= 3;
+
+        String badgeText;
+        int badgeTextColor;
+        int badgeBgRes;
+        if (isCancelled) {
+            badgeText      = "중단";
+            badgeTextColor = 0xFF888899;
+            badgeBgRes     = R.drawable.bg_badge_pending;
+        } else if (isCompleted) {
+            badgeText      = "완료";
+            badgeTextColor = 0xFF2ECC71;
+            badgeBgRes     = R.drawable.bg_badge_complete;
+        } else if (isOverdue) {
+            badgeText      = "기한초과";
+            badgeTextColor = 0xFFFF6B35;
+            badgeBgRes     = R.drawable.bg_badge_urgent;
+        } else if (isUrgent) {
+            badgeText      = "마감임박";
+            badgeTextColor = 0xFFFF6B35;
+            badgeBgRes     = R.drawable.bg_badge_urgent;
+        } else if ("IN_PROGRESS".equals(task.getStatus())) {
+            badgeText      = "진행중";
+            badgeTextColor = 0xFF7B3FE4;
+            badgeBgRes     = R.drawable.bg_badge_progress;
+        } else {
+            badgeText      = "대기";
+            badgeTextColor = 0xFF8888AA;
+            badgeBgRes     = R.drawable.bg_badge_pending;
+        }
+        badge.setText(badgeText);
+        badge.setTextColor(badgeTextColor);
+        badge.setBackgroundResource(badgeBgRes);
+    }
+
+    // ─────────────────────────────────────────
+    //  D-day 계산 — DateUtils 공통 유틸 위임
     // ─────────────────────────────────────────
 
     private long calcDday(String dueDateStr) {
-        if (dueDateStr == null) return 999L;
-        try {
-            String[] parts = dueDateStr.split("-");
-            if (parts.length != 3) return 999L;
-            int year  = Integer.parseInt(parts[0]);
-            int month = Integer.parseInt(parts[1]) - 1;
-            int day   = Integer.parseInt(parts[2]);
-
-            Calendar today = Calendar.getInstance();
-            today.set(Calendar.HOUR_OF_DAY, 0);
-            today.set(Calendar.MINUTE, 0);
-            today.set(Calendar.SECOND, 0);
-            today.set(Calendar.MILLISECOND, 0);
-
-            Calendar due = Calendar.getInstance();
-            due.set(year, month, day, 0, 0, 0);
-            due.set(Calendar.MILLISECOND, 0);
-
-            long diffMs = due.getTimeInMillis() - today.getTimeInMillis();
-            return diffMs / (24L * 60 * 60 * 1000);
-        } catch (Exception e) {
-            return 999L;
-        }
+        return DateUtils.calcDday(dueDateStr);
     }
 
     private int dpToPx(Context context, int dp) {
@@ -453,11 +437,9 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
 
                 @Override
                 public boolean areContentsTheSame(@NonNull TaskResponse o, @NonNull TaskResponse n) {
-                    boolean statusSame  = o.getStatus() != null && o.getStatus().equals(n.getStatus());
-                    boolean titleSame   = o.getTitle() != null && o.getTitle().equals(n.getTitle());
-                    boolean dueDateSame = o.getDueDate() == null
-                            ? n.getDueDate() == null
-                            : o.getDueDate().equals(n.getDueDate());
+                    boolean statusSame  = Objects.equals(o.getStatus(), n.getStatus());
+                    boolean titleSame   = Objects.equals(o.getTitle(), n.getTitle());
+                    boolean dueDateSame = Objects.equals(o.getDueDate(), n.getDueDate());
                     long oldAssigneeId = o.getAssignee() != null ? o.getAssignee().getId() : -1L;
                     long newAssigneeId = n.getAssignee() != null ? n.getAssignee().getId() : -1L;
                     return statusSame && titleSame && dueDateSame && (oldAssigneeId == newAssigneeId);

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,6 +34,12 @@ public class TeamService {
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final NudgeLogRepository nudgeLogRepository;
+
+    // Fix 4: private helper to eliminate duplicated orElseThrow pattern
+    private TeamMember getTeamMemberOrThrow(Long teamId, Long userId) {
+        return teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+    }
 
     @Transactional
     public TeamDetailResponse createTeam(Long userId, CreateTeamRequest request) {
@@ -54,12 +61,33 @@ public class TeamService {
         return TeamDetailResponse.from(team, List.of(TeamMemberResponse.from(member)));
     }
 
+    // Fix 3: N+1 eliminated — fetch all teams and counts in bulk
     public List<TeamResponse> getMyTeams(Long userId) {
-        return teamMemberRepository.findAllByUserId(userId).stream()
+        List<TeamMember> memberships = teamMemberRepository.findAllByUserId(userId);
+        if (memberships.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> teamIds = memberships.stream()
+                .map(TeamMember::getTeamId)
+                .collect(Collectors.toList());
+
+        Map<Long, Team> teamMap = teamRepository.findAllById(teamIds).stream()
+                .collect(Collectors.toMap(Team::getId, t -> t));
+
+        Map<Long, Long> countMap = teamMemberRepository.countByTeamIdIn(teamIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        return memberships.stream()
                 .map(membership -> {
-                    Team team = teamRepository.findById(membership.getTeamId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
-                    int memberCount = (int) teamMemberRepository.countByTeamId(team.getId());
+                    Team team = teamMap.get(membership.getTeamId());
+                    if (team == null) {
+                        throw new CustomException(ErrorCode.TEAM_NOT_FOUND);
+                    }
+                    int memberCount = countMap.getOrDefault(team.getId(), 0L).intValue();
                     return TeamResponse.builder()
                             .teamId(team.getId())
                             .teamName(team.getTeamName())
@@ -74,8 +102,7 @@ public class TeamService {
     }
 
     public TeamDetailResponse getTeamDetail(Long userId, Long teamId) {
-        teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        getTeamMemberOrThrow(teamId, userId);
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
         List<TeamMemberResponse> members = teamMemberRepository.findByTeamId(teamId).stream()
@@ -85,8 +112,7 @@ public class TeamService {
     }
 
     public InviteResponse getInviteCode(Long userId, Long teamId) {
-        teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        getTeamMemberOrThrow(teamId, userId);
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
         return InviteResponse.builder()
@@ -124,8 +150,7 @@ public class TeamService {
 
     @Transactional
     public void updateTeamSettings(Long userId, Long teamId, UpdateTeamSettingsRequest request) {
-        TeamMember myMembership = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        TeamMember myMembership = getTeamMemberOrThrow(teamId, userId);
         if (myMembership.getRole() != TeamRole.LEADER) {
             throw new CustomException(ErrorCode.NOT_TEAM_LEADER);
         }
@@ -136,8 +161,7 @@ public class TeamService {
         }
         if (request.getNewLeaderId() != null) {
             myMembership.updateRole(TeamRole.MEMBER);
-            TeamMember newLeader = teamMemberRepository.findByTeamIdAndUserId(teamId, request.getNewLeaderId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+            TeamMember newLeader = getTeamMemberOrThrow(teamId, request.getNewLeaderId());
             newLeader.updateRole(TeamRole.LEADER);
             team.updateLeader(request.getNewLeaderId());
         }
@@ -159,8 +183,7 @@ public class TeamService {
 
     @Transactional
     public void leaveTeam(Long userId, Long teamId) {
-        TeamMember member = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        TeamMember member = getTeamMemberOrThrow(teamId, userId);
         if (member.getRole() == TeamRole.LEADER) {
             long memberCount = teamMemberRepository.countByTeamId(teamId);
             if (memberCount > 1) {
@@ -172,7 +195,7 @@ public class TeamService {
         teamMemberRepository.delete(member);
     }
 
-    private void dissolveTeam(Long teamId) {
+    void dissolveTeam(Long teamId) {
         List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
                 .map(task -> task.getId())
                 .collect(Collectors.toList());
@@ -186,16 +209,14 @@ public class TeamService {
 
     @Transactional
     public void kickMember(Long leaderId, Long teamId, Long targetUserId) {
-        TeamMember leader = teamMemberRepository.findByTeamIdAndUserId(teamId, leaderId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        TeamMember leader = getTeamMemberOrThrow(teamId, leaderId);
         if (leader.getRole() != TeamRole.LEADER) {
             throw new CustomException(ErrorCode.NOT_TEAM_LEADER);
         }
         if (leaderId.equals(targetUserId)) {
             throw new CustomException(ErrorCode.CANNOT_KICK_SELF);
         }
-        TeamMember target = teamMemberRepository.findByTeamIdAndUserId(teamId, targetUserId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        TeamMember target = getTeamMemberOrThrow(teamId, targetUserId);
         teamMemberRepository.delete(target);
     }
 }

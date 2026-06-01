@@ -14,6 +14,8 @@ public class UserResponse {
 
     public long getId() { return id; }
     public String getUsername() { return username; }
+    /** username의 별칭 — domain.User 호환용 */
+    public String getName() { return username; }
     public String getEmail() { return email; }
     public String getColor() { return color; }
 }
