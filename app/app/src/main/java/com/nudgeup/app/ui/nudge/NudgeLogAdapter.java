@@ -50,7 +50,7 @@ public class NudgeLogAdapter extends ListAdapter<NudgeLogItemResponse, NudgeLogA
                 ? item.getSentBy().getName() : "누군가";
         // nudgeString 랜덤 문자열 추가코드
         int i = new java.util.Random().nextInt(nudgeString.length);
-        holder.tvMessage.setText(senderName + nudgeString[i]);
+        holder.tvMessage.setText(senderName +"님이 "+ nudgeString[i]);
 
         holder.tvTime.setText(formatRelativeTime(item.getSentAt()));
     }

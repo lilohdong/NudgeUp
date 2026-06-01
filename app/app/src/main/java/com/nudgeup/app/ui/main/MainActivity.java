@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nudgeup.app.R;
+import com.nudgeup.app.data.local.TokenManager;
 import com.nudgeup.app.util.ToastUtils;
 import com.nudgeup.app.ui.main.adapter.MemberFilterAdapter;
 import com.nudgeup.app.ui.main.adapter.TaskListAdapter;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         viewModel = new ViewModelProvider(this, new MainViewModel.Factory()).get(MainViewModel.class);
+        long currentUserId = TokenManager.getInstance(this).getUserId();
 
         // View 참조
         LinearLayout sidebarTeamContainer = findViewById(R.id.sidebar_team_container);
@@ -109,22 +111,19 @@ public class MainActivity extends AppCompatActivity {
                 taskId -> viewModel.sendNudge(taskId),
                 (taskId, status) -> viewModel.updateTaskStatus(taskId, status),
                 taskId -> viewModel.cancelTask(taskId),
-                false
+                false,
+                currentUserId
         );
         rvTeamTasks.setAdapter(teamTaskAdapter);
 
-        // 내 할일 RecyclerView (수정 아이콘 = 작업 화면으로 이동)
+        // 내 할일 RecyclerView (수정 아이콘 = 상태 변경)
         rvMyTasks.setLayoutManager(new LinearLayoutManager(this));
         myTaskAdapter = new TaskListAdapter(
-                taskId -> {
-                    Intent intent = new Intent(this, CreateTaskActivity.class);
-                    intent.putExtra("teamId", viewModel.getCurrentTeam().getValue() != null
-                            ? viewModel.getCurrentTeam().getValue().getId() : -1L);
-                    startActivity(intent);
-                },
+                taskId -> {},
                 (taskId, status) -> viewModel.updateTaskStatus(taskId, status),
                 taskId -> viewModel.cancelTask(taskId),
-                true
+                true,
+                currentUserId
         );
         rvMyTasks.setAdapter(myTaskAdapter);
 
@@ -208,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
             tvTeamName.setText(team.getName());
             btnTeamSettings.setVisibility(View.VISIBLE);
 
+            // 팀 전체 할일 탭: 팀장 여부에 따라 상태 변경 버튼 조건 갱신
+            teamTaskAdapter.setCurrentUserLeader("LEADER".equals(team.getMyRole()));
+
             // 팀 탭 선택 표시 갱신
             if (teamTabAdapter != null) {
                 teamTabAdapter.setSelectedTeamId(team.getId());
@@ -233,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel.getNudgeResult().observe(this, success -> {
             if (success != null) {
-                ToastUtils.show(this, success ? "독촉 알림을 보냈습니다." : "알림 전송에 실패했습니다.");
+                ToastUtils.show(this, success ? "독촉 알림을 보냈습니다." : "독촉 권한이 없습니다.");
             }
         });
 

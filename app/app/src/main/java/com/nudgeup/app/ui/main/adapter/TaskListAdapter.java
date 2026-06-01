@@ -38,6 +38,12 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
     private final OnStatusChangeListener statusListener;
     private final OnCancelClickListener cancelListener;
     private final boolean isMyTaskMode; // true = 내 할일 (수정 아이콘), false = 팀 할일 (종 아이콘)
+    private final long currentUserId;
+    private boolean isCurrentUserLeader = false;
+
+    public void setCurrentUserLeader(boolean isLeader) {
+        this.isCurrentUserLeader = isLeader;
+    }
 
     private static final int[] AVATAR_COLORS = {
         0xFF7B3FE4, // purple
@@ -56,12 +62,14 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
     public TaskListAdapter(OnNudgeClickListener nudgeListener,
                            OnStatusChangeListener statusListener,
                            OnCancelClickListener cancelListener,
-                           boolean isMyTaskMode) {
+                           boolean isMyTaskMode,
+                           long currentUserId) {
         super(DIFF_CALLBACK);
         this.nudgeListener  = nudgeListener;
         this.statusListener = statusListener;
         this.cancelListener = cancelListener;
         this.isMyTaskMode   = isMyTaskMode;
+        this.currentUserId  = currentUserId;
     }
 
     @NonNull
@@ -124,13 +132,9 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         holder.tvStatusBadge.setTextColor(badgeTextColor);
         holder.tvStatusBadge.setBackgroundResource(badgeBgRes);
 
-        // 상태 배지 클릭 → 드롭다운으로 상태 변경
-        if (isCancelled) {
-            holder.tvStatusBadge.setOnClickListener(null);
-        } else {
-            holder.tvStatusBadge.setOnClickListener(v ->
-                    showStatusDropdown(v, task.getId(), task.getStatus()));
-        }
+        // 상태 배지 — UI 표시 전용, 클릭 비활성화
+        holder.tvStatusBadge.setOnClickListener(null);
+        holder.tvStatusBadge.setClickable(false);
 
         // ── D-day 텍스트 ──
         if (task.getDueDate() == null || task.getDueDate().isEmpty()) {
@@ -170,22 +174,41 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         }
 
         // ── 액션 버튼 ──
+        boolean isMyOwnTask = task.getAssignee() != null && task.getAssignee().getId() == currentUserId;
         if (isCancelled) {
             holder.btnAction.setAlpha(0.0f);
             holder.btnAction.setOnClickListener(null);
         } else if (isMyTaskMode) {
-            holder.btnAction.setImageResource(R.drawable.ic_edit);
-            holder.btnAction.setAlpha(1.0f);
-            holder.btnAction.setOnClickListener(v -> showStatusDropdown(v, task.getId(), task.getStatus()));
-        } else if (isCompleted) {
-            holder.btnAction.setImageResource(R.drawable.ic_edit);
-            holder.btnAction.setAlpha(0.4f);
-            holder.btnAction.setOnClickListener(null);
+            // 내 할일 탭: 완료 작업은 버튼 비활성, 나머지는 상태 변경 가능
+            if (isCompleted) {
+                holder.btnAction.setImageResource(R.drawable.ic_bell);
+                holder.btnAction.setAlpha(0.4f);
+                holder.btnAction.setOnClickListener(null);
+            } else {
+                holder.btnAction.setImageResource(R.drawable.ic_edit);
+                holder.btnAction.setAlpha(1.0f);
+                holder.btnAction.setOnClickListener(v -> showStatusDropdown(v, task.getId(), task.getStatus()));
+            }
         } else {
-            holder.btnAction.setImageResource(R.drawable.ic_bell);
-            holder.btnAction.setAlpha(1.0f);
-            holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
+            // 팀 전체 할일 탭: 담당자 또는 팀장 → 상태 변경(pen), 나머지 → 독촉(bell)
+            boolean canChangeStatus = (isMyOwnTask || isCurrentUserLeader) && !isCompleted;
+            if (canChangeStatus) {
+                holder.btnAction.setImageResource(R.drawable.ic_edit);
+                holder.btnAction.setAlpha(1.0f);
+                holder.btnAction.setOnClickListener(v -> showStatusDropdown(v, task.getId(), task.getStatus()));
+            } else if (isCompleted) {
+                holder.btnAction.setImageResource(R.drawable.ic_bell);
+                holder.btnAction.setAlpha(0.4f);
+                holder.btnAction.setOnClickListener(null);
+            } else {
+                holder.btnAction.setImageResource(R.drawable.ic_bell);
+                holder.btnAction.setAlpha(1.0f);
+                holder.btnAction.setOnClickListener(v -> nudgeListener.onNudgeClick(task.getId()));
+            }
         }
+
+        // ── 카드 클릭 → 상세 다이얼로그 ──
+        holder.itemView.setOnClickListener(v -> showDetailDialog(v, task));
 
         // ── 삭제 버튼 ──
         if (isCancelled) {
@@ -195,6 +218,90 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
             holder.btnCancel.setAlpha(0.6f);
             holder.btnCancel.setOnClickListener(v -> showDeleteDialog(v, task));
         }
+    }
+
+    // ─────────────────────────────────────────
+    //  작업 상세 다이얼로그
+    // ─────────────────────────────────────────
+
+    private void showDetailDialog(View anchor, TaskResponse task) {
+        Context context = anchor.getContext();
+        android.view.View dialogView = android.view.LayoutInflater.from(context)
+                .inflate(R.layout.dialog_task_detail, null);
+
+        android.widget.TextView tvTitle       = dialogView.findViewById(R.id.tv_detail_title);
+        android.widget.TextView tvStatus      = dialogView.findViewById(R.id.tv_detail_status);
+        android.widget.TextView tvDueDate     = dialogView.findViewById(R.id.tv_detail_due_date);
+        android.widget.TextView tvAssignee    = dialogView.findViewById(R.id.tv_detail_assignee);
+        android.widget.LinearLayout layoutDesc = dialogView.findViewById(R.id.layout_detail_description);
+        android.widget.TextView tvDesc        = dialogView.findViewById(R.id.tv_detail_description);
+        android.widget.TextView btnClose      = dialogView.findViewById(R.id.btn_detail_close);
+
+        tvTitle.setText(task.getTitle());
+
+        // 상태 배지
+        boolean isCancelled = "CANCELLED".equals(task.getStatus());
+        boolean isCompleted = "COMPLETED".equals(task.getStatus());
+        long dialogDday = calcDday(task.getDueDate());
+        boolean isOverdue = !isCompleted && !isCancelled && dialogDday < 0;
+        boolean isUrgent  = !isCompleted && !isCancelled && dialogDday >= 0 && dialogDday <= 3;
+        String statusText;
+        int statusColor;
+        int statusBg;
+        if (isCancelled)      { statusText = "중단";    statusColor = 0xFF888899; statusBg = R.drawable.bg_badge_pending; }
+        else if (isCompleted) { statusText = "완료";    statusColor = 0xFF2ECC71; statusBg = R.drawable.bg_badge_complete; }
+        else if (isOverdue)   { statusText = "기한초과"; statusColor = 0xFFFF6B35; statusBg = R.drawable.bg_badge_urgent; }
+        else if (isUrgent)    { statusText = "마감임박"; statusColor = 0xFFFF6B35; statusBg = R.drawable.bg_badge_urgent; }
+        else if ("IN_PROGRESS".equals(task.getStatus())) { statusText = "진행중"; statusColor = 0xFF7B3FE4; statusBg = R.drawable.bg_badge_progress; }
+        else                  { statusText = "대기";    statusColor = 0xFF8888AA; statusBg = R.drawable.bg_badge_pending; }
+        tvStatus.setText(statusText);
+        tvStatus.setTextColor(statusColor);
+        tvStatus.setBackgroundResource(statusBg);
+
+        // 마감일
+        if (task.getDueDate() == null || task.getDueDate().isEmpty()) {
+            tvDueDate.setText("없음");
+            tvDueDate.setTextColor(0xFF8888AA);
+        } else {
+            long dday = calcDday(task.getDueDate());
+            if (isCompleted) {
+                tvDueDate.setText(task.getDueDate() + "  (완료됨)");
+                tvDueDate.setTextColor(0xFF2ECC71);
+            } else if (dday < 0) {
+                tvDueDate.setText(task.getDueDate() + "  (D+" + Math.abs(dday) + " 초과)");
+                tvDueDate.setTextColor(0xFFFF6B35);
+            } else if (dday == 0) {
+                tvDueDate.setText(task.getDueDate() + "  (D-Day)");
+                tvDueDate.setTextColor(0xFFFF6B35);
+            } else {
+                tvDueDate.setText(task.getDueDate() + "  (D-" + dday + ")");
+                tvDueDate.setTextColor(dday <= 3 ? 0xFFFF6B35 : 0xFFCCCCDD);
+            }
+        }
+
+        // 담당자
+        tvAssignee.setText(task.getAssignee() != null ? task.getAssignee().getName() : "미지정");
+
+        // 상세내용
+        String desc = task.getDescription();
+        if (desc != null && !desc.trim().isEmpty()) {
+            layoutDesc.setVisibility(android.view.View.VISIBLE);
+            tvDesc.setText(desc.trim());
+        } else {
+            layoutDesc.setVisibility(android.view.View.GONE);
+        }
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(context)
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     // ─────────────────────────────────────────

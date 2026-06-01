@@ -7,6 +7,7 @@ public class TaskResponse {
     @SerializedName("taskId")
     private long id;
     private String title;
+    private String description;
     private String status;
     private String dueDate;
     private User assignee;
@@ -24,6 +25,7 @@ public class TaskResponse {
 
     public long getId() { return id; }
     public String getTitle() { return title; }
+    public String getDescription() { return description; }
     public String getStatus() { return status; }
     public String getDueDate() { return dueDate; }
     public User getAssignee() { return assignee; }
