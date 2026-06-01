@@ -207,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
             tvTeamName.setText(team.getName());
             btnTeamSettings.setVisibility(View.VISIBLE);
 
+            // 팀 전체 할일 탭: 팀장 여부에 따라 상태 변경 버튼 조건 갱신
+            teamTaskAdapter.setCurrentUserLeader("LEADER".equals(team.getMyRole()));
+
             // 팀 탭 선택 표시 갱신
             if (teamTabAdapter != null) {
                 teamTabAdapter.setSelectedTeamId(team.getId());
