@@ -195,7 +195,7 @@ public class TeamService {
         teamMemberRepository.delete(member);
     }
 
-    void dissolveTeam(Long teamId) {
+    public void dissolveTeam(Long teamId) {
         List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
                 .map(task -> task.getId())
                 .collect(Collectors.toList());
