@@ -46,10 +46,6 @@ public class ProfileDialog extends DialogFragment {
         return new ProfileDialog();
     }
 
-    public static ProfileDialog newInstance(boolean isLeader) {
-        return new ProfileDialog();
-    }
-
     /** 선택 가능한 아바타 색상 팔레트 (8가지) */
     private static final int[] SWATCH_COLORS = {
         0xFFD4FF00, // lime  — 시그니처
@@ -299,6 +295,7 @@ public class ProfileDialog extends DialogFragment {
                                     startActivity(intent);
                                     dismiss();
                                 } else {
+                                    if (!isAdded()) return;
                                     try {
                                         if (response.errorBody() != null) {
                                             org.json.JSONObject json = new org.json.JSONObject(
@@ -315,6 +312,7 @@ public class ProfileDialog extends DialogFragment {
                             public void onFailure(
                                     retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<Void>> call,
                                     Throwable t) {
+                                if (!isAdded()) return;
                                 ToastUtils.show(requireContext(), "네트워크 오류가 발생했습니다.");
                             }
                         });

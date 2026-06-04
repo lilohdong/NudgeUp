@@ -27,30 +27,23 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // ViewModel을 먼저 생성해 두어 checkLoginStatus() 결과를 observe할 수 있게 한다
+        viewModel = new ViewModelProvider(this, new LoginViewModel.Factory(NudgeUpApplication.getTokenManager()))
+                .get(LoginViewModel.class);
+
         if (NudgeUpApplication.getTokenManager().isLoggedIn()) {
-            new com.nudgeup.app.data.repository.UserRepository().getMe()
-                    .enqueue(new retrofit2.Callback<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>>() {
-                        @Override
-                        public void onResponse(
-                                retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
-                                retrofit2.Response<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> response) {
-                            if (response.isSuccessful()) {
-                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                finish();
-                            } else {
-                                NudgeUpApplication.getTokenManager().clearTokens();
-                                setContentView(R.layout.activity_login);
-                                setupLoginUi();
-                            }
-                        }
-                        @Override
-                        public void onFailure(
-                                retrofit2.Call<com.nudgeup.app.data.dto.response.ApiResponse<com.nudgeup.app.data.dto.response.UserResponse>> call,
-                                Throwable t) {
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                            finish();
-                        }
-                    });
+            // Repository 직접 호출 대신 ViewModel을 통해 로그인 상태 검증
+            viewModel.getIsLoggedIn().observe(this, loggedIn -> {
+                if (Boolean.TRUE.equals(loggedIn)) {
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    NudgeUpApplication.getTokenManager().clearTokens();
+                    setContentView(R.layout.activity_login);
+                    setupLoginUi();
+                }
+            });
+            viewModel.checkLoginStatus();
             return;
         }
 
@@ -59,9 +52,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void setupLoginUi() {
-        viewModel = new ViewModelProvider(this, new LoginViewModel.Factory(NudgeUpApplication.getTokenManager()))
-                .get(LoginViewModel.class);
-
+        // viewModel은 onCreate()에서 이미 초기화됨
         etUserId = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnTogglePassword = findViewById(R.id.btn_toggle_password);

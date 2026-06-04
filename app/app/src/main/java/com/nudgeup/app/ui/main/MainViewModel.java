@@ -12,8 +12,8 @@ import com.nudgeup.app.data.dto.response.TeamResponse;
 import com.nudgeup.app.data.repository.NudgeRepository;
 import com.nudgeup.app.data.repository.TaskRepository;
 import com.nudgeup.app.data.repository.TeamRepository;
+import com.nudgeup.app.util.DateUtils;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import retrofit2.Call;
@@ -21,6 +21,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainViewModel extends ViewModel {
+
+    private static final String ERROR_NETWORK = "네트워크 오류가 발생했습니다.";
 
     private final TeamRepository teamRepository;
     private final TaskRepository taskRepository;
@@ -91,13 +93,21 @@ public class MainViewModel extends ViewModel {
                     List<TeamResponse> list = response.body().getData();
                     teams.setValue(list);
                     if (list != null && !list.isEmpty()) {
-                        selectTeam(list.get(0).getId());
+                        if (currentTeam.getValue() == null) {
+                            selectTeam(list.get(0).getId());
+                        } else {
+                            Long currentId = currentTeam.getValue().getId();
+                            boolean stillExists = list.stream().anyMatch(t -> t.getId() == currentId);
+                            if (!stillExists) {
+                                selectTeam(list.get(0).getId());
+                            }
+                        }
                     }
                 }
             }
             @Override
             public void onFailure(Call<ApiResponse<List<TeamResponse>>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }
@@ -131,7 +141,7 @@ public class MainViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<List<TaskResponse>>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
 
@@ -156,7 +166,7 @@ public class MainViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<List<TaskResponse>>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }
@@ -175,7 +185,7 @@ public class MainViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }
@@ -279,7 +289,7 @@ public class MainViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<TaskResponse>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }
@@ -292,7 +302,7 @@ public class MainViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<TeamDetailResponse>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }
@@ -341,26 +351,7 @@ public class MainViewModel extends ViewModel {
     }
 
     static long calcDdayStatic(String dueDateStr) {
-        if (dueDateStr == null) return 999L;
-        try {
-            String[] parts = dueDateStr.split("-");
-            if (parts.length != 3) return 999L;
-            int year = Integer.parseInt(parts[0]);
-            int month = Integer.parseInt(parts[1]) - 1;
-            int day = Integer.parseInt(parts[2]);
-            Calendar today = Calendar.getInstance();
-            today.set(Calendar.HOUR_OF_DAY, 0);
-            today.set(Calendar.MINUTE, 0);
-            today.set(Calendar.SECOND, 0);
-            today.set(Calendar.MILLISECOND, 0);
-            Calendar due = Calendar.getInstance();
-            due.set(year, month, day, 0, 0, 0);
-            due.set(Calendar.MILLISECOND, 0);
-            long diffMs = due.getTimeInMillis() - today.getTimeInMillis();
-            return diffMs / (24L * 60 * 60 * 1000);
-        } catch (Exception e) {
-            return 999L;
-        }
+        return DateUtils.calcDday(dueDateStr);
     }
 
     public long calcDday(String dueDateStr) { return calcDdayStatic(dueDateStr); }
@@ -381,7 +372,7 @@ public class MainViewModel extends ViewModel {
             }
             @Override
             public void onFailure(Call<ApiResponse<TeamResponse>> call, Throwable t) {
-                networkError.setValue("네트워크 오류가 발생했습니다.");
+                networkError.setValue(ERROR_NETWORK);
             }
         });
     }

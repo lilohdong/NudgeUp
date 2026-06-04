@@ -5,6 +5,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -37,9 +39,12 @@ public class NudgeFcmService extends FirebaseMessagingService {
         if (accessToken == null) return;
         new UserRepository().registerFcmToken(token).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
-            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {}
+            public void onResponse(@NonNull Call<ApiResponse<Void>> call,
+                                   @NonNull Response<ApiResponse<Void>> response) {}
             @Override
-            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {}
+            public void onFailure(@NonNull Call<ApiResponse<Void>> call, @NonNull Throwable t) {
+                Log.e("NudgeFcmService", "FCM 토큰 등록 실패: " + t.getMessage());
+            }
         });
     }
 
@@ -58,7 +63,7 @@ public class NudgeFcmService extends FirebaseMessagingService {
                 this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_bell)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setAutoCancel(true)

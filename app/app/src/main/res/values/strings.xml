@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">NudgeUp</string>
 
+    <string name="error_network">네트워크 오류가 발생했습니다.</string>
+    <string name="error_unknown">알 수 없는 오류가 발생했습니다.</string>
+
     <string-array name="sort_options">
         <item>기본 정렬</item>
         <item>담당자 순</item>

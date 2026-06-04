@@ -24,8 +24,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +43,12 @@ public class NudgeService {
     private final FcmService fcmService;
     private final TeamRepository teamRepository;
 
+    // ── 헬퍼: 팀 멤버십 검증 ────────────────────────────────────────────────
+    private TeamMember getTeamMemberOrThrow(Long teamId, Long userId) {
+        return teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+    }
+
     @Transactional
     public NudgeResponse sendNudge(Long userId, Long teamId, Long taskId) {
         Task task = taskRepository.findById(taskId)
@@ -49,12 +58,12 @@ public class NudgeService {
             throw new CustomException(ErrorCode.TASK_NOT_FOUND);
         }
 
-        if (task.getStatus() == TaskStatus.COMPLETED) {
+        // 문제 3: CANCELLED 상태도 차단
+        if (task.getStatus() == TaskStatus.COMPLETED || task.getStatus() == TaskStatus.CANCELLED) {
             throw new CustomException(ErrorCode.TASK_ALREADY_COMPLETED);
         }
 
-        TeamMember sender = teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        TeamMember sender = getTeamMemberOrThrow(teamId, userId);
 
         if (sender.getRole() != TeamRole.LEADER && !sender.isCanNudge()) {
             throw new CustomException(ErrorCode.NO_NUDGE_PERMISSION);
@@ -98,8 +107,7 @@ public class NudgeService {
     }
 
     public List<NudgeLogResponse> getNudgeLogs(Long userId, Long teamId, Long taskId) {
-        teamMemberRepository.findByTeamIdAndUserId(teamId, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_TEAM_MEMBER));
+        getTeamMemberOrThrow(teamId, userId);
 
         List<NudgeLog> logs;
         if (taskId != null) {
@@ -110,25 +118,40 @@ public class NudgeService {
             }
             logs = nudgeLogRepository.findByTaskId(taskId);
         } else {
-            List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
-                    .map(Task::getId)
-                    .collect(Collectors.toList());
+            // 문제 4: 엔티티 전체 로딩 대신 ID만 조회
+            List<Long> taskIds = taskRepository.findIdsByTeamId(teamId);
             logs = taskIds.isEmpty() ? List.of() : nudgeLogRepository.findByTaskIdIn(taskIds);
         }
 
+        if (logs.isEmpty()) {
+            return List.of();
+        }
+
+        // 문제 2: N+1 제거 — taskIds, sentByIds 배치 조회
+        List<Long> logTaskIds = logs.stream().map(NudgeLog::getTaskId).distinct().collect(Collectors.toList());
+        List<Long> sentByIds  = logs.stream().map(NudgeLog::getSentById).distinct().collect(Collectors.toList());
+
+        Map<Long, Task> taskMap = taskRepository.findAllById(logTaskIds)
+                .stream()
+                .collect(Collectors.toMap(Task::getId, Function.identity()));
+
+        Set<Long> userIds = new HashSet<>(sentByIds);
+        taskMap.values().forEach(t -> {
+            if (t.getAssigneeId() != null) userIds.add(t.getAssigneeId());
+        });
+
+        Map<Long, UserResponse> userMap = userRepository.findAllById(userIds)
+                .stream()
+                .collect(Collectors.toMap(User::getId, UserResponse::from));
+
         return logs.stream()
                 .map(log -> {
-                    Task task = taskRepository.findById(log.getTaskId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
-                    User sentByUser = userRepository.findById(log.getSentById())
-                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-                    UserResponse sentByResponse = UserResponse.from(sentByUser);
-                    UserResponse sentToResponse = null;
-                    if (task.getAssigneeId() != null) {
-                        User assignee = userRepository.findById(task.getAssigneeId())
-                                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-                        sentToResponse = UserResponse.from(assignee);
-                    }
+                    Task task = taskMap.get(log.getTaskId());
+                    if (task == null) throw new CustomException(ErrorCode.TASK_NOT_FOUND);
+                    UserResponse sentByResponse = userMap.get(log.getSentById());
+                    UserResponse sentToResponse = task.getAssigneeId() != null
+                            ? userMap.get(task.getAssigneeId())
+                            : null;
                     return NudgeLogResponse.from(log, task.getTitle(), sentToResponse, sentByResponse);
                 })
                 .collect(Collectors.toList());
@@ -137,24 +160,45 @@ public class NudgeService {
     public List<NudgeLogResponse> getReceivedNudgeLogs(Long userId) {
         List<NudgeLog> logs = nudgeLogRepository.findReceivedByUserId(userId);
 
+        if (logs.isEmpty()) {
+            return List.of();
+        }
+
+        // 문제 2: N+1 제거 — taskIds, sentByIds, teamIds 배치 조회
+        List<Long> logTaskIds = logs.stream().map(NudgeLog::getTaskId).distinct().collect(Collectors.toList());
+        List<Long> sentByIds  = logs.stream().map(NudgeLog::getSentById).distinct().collect(Collectors.toList());
+
+        Map<Long, Task> taskMap = taskRepository.findAllById(logTaskIds)
+                .stream()
+                .collect(Collectors.toMap(Task::getId, Function.identity()));
+
+        List<Long> teamIds = taskMap.values().stream()
+                .map(Task::getTeamId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, String> teamNameMap = teamRepository.findAllById(teamIds)
+                .stream()
+                .collect(Collectors.toMap(Team::getId, Team::getTeamName));
+
+        Set<Long> userIds = new HashSet<>(sentByIds);
+        taskMap.values().forEach(t -> {
+            if (t.getAssigneeId() != null) userIds.add(t.getAssigneeId());
+        });
+
+        Map<Long, UserResponse> userMap = userRepository.findAllById(userIds)
+                .stream()
+                .collect(Collectors.toMap(User::getId, UserResponse::from));
+
         return logs.stream()
                 .map(log -> {
-                    Task task = taskRepository.findById(log.getTaskId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.TASK_NOT_FOUND));
-                    User sentByUser = userRepository.findById(log.getSentById())
-                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-                    UserResponse sentByResponse = UserResponse.from(sentByUser);
-
-                    UserResponse sentToResponse = null;
-                    if (task.getAssigneeId() != null) {
-                        sentToResponse = userRepository.findById(task.getAssigneeId())
-                                .map(UserResponse::from).orElse(null);
-                    }
-
-                    String teamName = teamRepository.findById(task.getTeamId())
-                            .map(Team::getTeamName)
-                            .orElse("");
-
+                    Task task = taskMap.get(log.getTaskId());
+                    if (task == null) throw new CustomException(ErrorCode.TASK_NOT_FOUND);
+                    UserResponse sentByResponse = userMap.get(log.getSentById());
+                    UserResponse sentToResponse = task.getAssigneeId() != null
+                            ? userMap.get(task.getAssigneeId())
+                            : null;
+                    String teamName = teamNameMap.getOrDefault(task.getTeamId(), "");
                     return NudgeLogResponse.from(
                             log, task.getTitle(),
                             task.getTeamId(), teamName,

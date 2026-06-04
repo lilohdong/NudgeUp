@@ -17,9 +17,13 @@ public class CreateTeamDialog extends DialogFragment {
         void onCreateTeam(String teamName);
     }
 
-    private final OnCreateTeamListener listener;
+    private OnCreateTeamListener listener;
 
-    public CreateTeamDialog(OnCreateTeamListener listener) {
+    public static CreateTeamDialog newInstance() {
+        return new CreateTeamDialog();
+    }
+
+    public void setListener(OnCreateTeamListener listener) {
         this.listener = listener;
     }
 
@@ -34,7 +38,7 @@ public class CreateTeamDialog extends DialogFragment {
 
         btnCreate.setOnClickListener(v -> {
             String name = etTeamName.getText().toString().trim();
-            if (!name.isEmpty()) {
+            if (!name.isEmpty() && listener != null) {
                 listener.onCreateTeam(name);
                 dismiss();
             }

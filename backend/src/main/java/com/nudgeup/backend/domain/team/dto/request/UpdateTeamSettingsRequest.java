@@ -1,5 +1,6 @@
 package com.nudgeup.backend.domain.team.dto.request;
 
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.List;
 @Getter
 public class UpdateTeamSettingsRequest {
 
+    // null이면 변경 안 함. 값이 있으면 1~100자 범위만 허용 (빈 문자열 방지)
+    @Size(min = 1, max = 100, message = "팀 이름은 1~100자여야 합니다.")
     private String teamName;
     private Long newLeaderId;
     private List<MemberPermission> memberPermissions;

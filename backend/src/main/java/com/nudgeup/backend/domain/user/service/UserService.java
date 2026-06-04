@@ -5,7 +5,7 @@ import com.nudgeup.backend.domain.task.repository.TaskRepository;
 import com.nudgeup.backend.domain.team.entity.TeamMember;
 import com.nudgeup.backend.domain.team.entity.TeamRole;
 import com.nudgeup.backend.domain.team.repository.TeamMemberRepository;
-import com.nudgeup.backend.domain.team.repository.TeamRepository;
+import com.nudgeup.backend.domain.team.service.TeamService;
 import com.nudgeup.backend.domain.user.dto.request.FcmTokenRequest;
 import com.nudgeup.backend.domain.user.dto.request.UpdateColorRequest;
 import com.nudgeup.backend.domain.user.dto.request.UpdateUserRequest;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +26,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final TeamMemberRepository teamMemberRepository;
-    private final TeamRepository teamRepository;
+    private final TeamService teamService;
     private final TaskRepository taskRepository;
     private final NudgeLogRepository nudgeLogRepository;
 
@@ -81,18 +80,10 @@ public class UserService {
             }
         }
 
-        // 혼자인 팀 해산: Task → NudgeLog → TeamMember → Team 순으로 삭제
+        // Fix 2: 혼자인 팀 해산 — TeamService.dissolveTeam()에 위임하여 중복 제거
         for (TeamMember m : myMemberships) {
             if (m.getRole() == TeamRole.LEADER) {
-                Long teamId = m.getTeamId();
-                List<Long> taskIds = taskRepository.findByTeamId(teamId).stream()
-                        .map(t -> t.getId()).collect(java.util.stream.Collectors.toList());
-                if (!taskIds.isEmpty()) {
-                    nudgeLogRepository.deleteByTaskIdIn(taskIds);
-                }
-                taskRepository.deleteAllByTeamId(teamId);
-                teamMemberRepository.deleteAllByTeamId(teamId);
-                teamRepository.deleteById(teamId);
+                teamService.dissolveTeam(m.getTeamId());
             }
         }
         // 남은 비-팀장 멤버십 삭제

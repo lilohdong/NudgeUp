@@ -38,6 +38,13 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("DELETE FROM Task t WHERE t.teamId = :teamId")
     void deleteAllByTeamId(@Param("teamId") Long teamId);
 
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Task t WHERE t.id IN :ids")
+    void deleteAllByIdIn(@Param("ids") List<Long> ids);
+
+    @Query("SELECT t.id FROM Task t WHERE t.teamId = :teamId")
+    List<Long> findIdsByTeamId(@Param("teamId") Long teamId);
+
     @Query("SELECT t FROM Task t WHERE " +
            "(t.status = :completed AND t.completedAt < :cutoff) OR " +
            "(t.status = :cancelled AND t.cancelledAt < :cutoff)")

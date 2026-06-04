@@ -38,7 +38,7 @@ public class TaskCleanupScheduler {
                 .collect(Collectors.toList());
 
         nudgeLogRepository.deleteByTaskIdIn(taskIds);
-        taskRepository.deleteAllById(taskIds);
+        taskRepository.deleteAllByIdIn(taskIds);
 
         log.info("만료된 작업 {}건 자동 삭제 완료", taskIds.size());
     }
