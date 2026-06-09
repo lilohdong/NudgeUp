@@ -210,7 +210,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="© 2024 Your App. All rights reserved."
+            android:text="© 2026 Your App. All rights reserved."
             android:textColor="@color/text_hint_color"
             android:textSize="11sp"/>
 

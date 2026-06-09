@@ -82,15 +82,20 @@ public class MemberNudgeAdapter extends RecyclerView.Adapter<MemberNudgeAdapter.
         holder.tvRole.setText(isLeader ? "팀장" : "팀원");
         holder.tvRole.setTextColor(isLeader ? 0xFFD4FF00 : 0xFF8888AA);
 
-        // 독촉 권한 토글 (팀장은 항상 ON, 비활성화)
-        holder.swCanNudge.setOnCheckedChangeListener(null);
-        holder.swCanNudge.setChecked(isLeader || member.isCanNudge());
-        if (isLeader) {
-            holder.swCanNudge.setEnabled(false);
+        // 독촉 권한 토글 — listener null이면 읽기 전용(팀원 정보 화면)으로 숨김
+        if (listener == null) {
+            holder.swCanNudge.setVisibility(View.GONE);
         } else {
-            holder.swCanNudge.setEnabled(true);
-            holder.swCanNudge.setOnCheckedChangeListener((btn, checked) ->
-                    listener.onChange(member.getUserId(), checked));
+            holder.swCanNudge.setVisibility(View.VISIBLE);
+            holder.swCanNudge.setOnCheckedChangeListener(null);
+            holder.swCanNudge.setChecked(isLeader || member.isCanNudge());
+            if (isLeader) {
+                holder.swCanNudge.setEnabled(false);
+            } else {
+                holder.swCanNudge.setEnabled(true);
+                holder.swCanNudge.setOnCheckedChangeListener((btn, checked) ->
+                        listener.onChange(member.getUserId(), checked));
+            }
         }
 
         // 추방 버튼 (팀장 모드에서 팀원에게만 표시)
