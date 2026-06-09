@@ -207,6 +207,7 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         android.widget.TextView tvAssignee    = dialogView.findViewById(R.id.tv_detail_assignee);
         android.widget.LinearLayout layoutDesc = dialogView.findViewById(R.id.layout_detail_description);
         android.widget.TextView tvDesc        = dialogView.findViewById(R.id.tv_detail_description);
+        android.widget.TextView btnNudge      = dialogView.findViewById(R.id.btn_detail_nudge);
         android.widget.TextView btnClose      = dialogView.findViewById(R.id.btn_detail_close);
 
         tvTitle.setText(task.getTitle());
@@ -256,6 +257,17 @@ public class TaskListAdapter extends ListAdapter<TaskResponse, TaskListAdapter.V
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(
                     new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+
+        // 독촉 버튼: 완료·취소 상태이거나 내 작업이면 숨김
+        boolean isMyOwnTask = task.getAssignee() != null && task.getAssignee().getId() == currentUserId;
+        boolean canNudge = !isCancelled && !isCompleted && !isMyOwnTask;
+        if (canNudge) {
+            btnNudge.setVisibility(android.view.View.VISIBLE);
+            btnNudge.setOnClickListener(v -> {
+                nudgeListener.onNudgeClick(task.getId());
+                dialog.dismiss();
+            });
         }
 
         btnClose.setOnClickListener(v -> dialog.dismiss());
