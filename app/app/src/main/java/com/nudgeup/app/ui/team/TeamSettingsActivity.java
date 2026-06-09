@@ -28,6 +28,8 @@ public class TeamSettingsActivity extends AppCompatActivity {
     private TeamSettingsViewModel viewModel;
     private long teamId;
     private MemberNudgeAdapter memberNudgeAdapter;
+    private MemberNudgeAdapter memberReadonlyAdapter;
+    private RecyclerView rvMembersReadonly;
     private TextView tvSelectedLeader;
     private TextView tvInviteCode;
     private long selectedLeaderId = -1L;
@@ -66,6 +68,11 @@ public class TeamSettingsActivity extends AppCompatActivity {
         }
 
         rvMembers.setLayoutManager(new LinearLayoutManager(this));
+
+        rvMembersReadonly = findViewById(R.id.rv_members_readonly);
+        if (rvMembersReadonly != null) {
+            rvMembersReadonly.setLayoutManager(new LinearLayoutManager(this));
+        }
 
         btnClose.setOnClickListener(v -> finish());
 
@@ -130,6 +137,16 @@ public class TeamSettingsActivity extends AppCompatActivity {
                 rvMembers.setAdapter(memberNudgeAdapter);
             } else {
                 memberNudgeAdapter.setMembers(members);
+            }
+
+            // 팀원 전용 읽기 전용 목록
+            if (!isLeader && rvMembersReadonly != null) {
+                if (memberReadonlyAdapter == null) {
+                    memberReadonlyAdapter = new MemberNudgeAdapter(members, null);
+                    rvMembersReadonly.setAdapter(memberReadonlyAdapter);
+                } else {
+                    memberReadonlyAdapter.setMembers(members);
+                }
             }
         });
 
